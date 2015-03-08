@@ -10,3 +10,4 @@ factorial <- function(n) {
     return(n*factorial(n - 1));
   }
 }
+# Thanks!
