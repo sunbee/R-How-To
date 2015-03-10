@@ -5,7 +5,7 @@ library(rgeos)
 # How To
 # Read a shape file (.shp) into familiar R objects
 #   Read shp file into spatial object
-shpPath = "C:/Users/ssbhat3/Desktop/Org Docs/MonResCen/R HOW TO/IND_adm/"
+shpPath = "C:/Users/ssbhat3/Desktop/R-HOW-TO/IND_adm/"
 shpName = "Ind_Adm2.shp"
 shpFile = paste0(shpPath, shpName)
 India_map <- readShapePoly(shpFile)

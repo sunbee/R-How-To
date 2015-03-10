@@ -17,11 +17,11 @@
 test.examples <- function() {
   # Test Data Set-Up
   # Input argument - mapName
-  shpPath = "C:/Users/ssbhat3/Desktop/Org Docs/MonResCen/R HOW TO/IND_adm/"
+  shpPath = "C:/Users/ssbhat3/Desktop/R-HOW-TO/IND_adm/"
   shpName = "Ind_Adm2.shp"
   mapName = paste0(shpPath, shpName)
   # Input argument - overlayName
-  dataPath = "C:/Users/ssbhat3/Desktop/Org Docs/MonResCen/R HOW TO/"
+  dataPath = "C:/Users/ssbhat3/Desktop/R-HOW-TO/"
   dataName = "sex_ratio.csv"
   overlayName = paste0(dataPath, dataName)
   
@@ -60,6 +60,43 @@ test.examples <- function() {
   renderMap(mapName, overlayName, join.field="State", plot.field="X2001")
   checkException(renderMap("mapName", overlayName, join.field="State", plot.field="X2001"))
   checkException(renderMap("mapName", "overlayName", "State", "X2001"))
+  
+}
+
+test.KA <- function() {
+  # Test Data Set-Up
+  # Input argument - mapName
+  shpPath = "C:/Users/ssbhat3/Desktop/R-HOW-TO/IND_adm/"
+  shpName = "Ind_Adm2.shp"
+  mapName = paste0(shpPath, shpName)
+  # Input argument - overlayName
+  dataPath = "C:/Users/ssbhat3/Desktop/R-HOW-TO/"
+  dataName = "KA_rand.csv"
+  overlayName = paste0(dataPath, dataName)
+
+  M <- createMap(mapName)
+  checkEquals("SpatialPolygonsDataFrame", class(M)[1], msg="Failed to load.")
+  checkTrue(is.list(M@polygons), "List of shapes of class polygons")
+  checkTrue(is.data.frame(M@data), "Data stashed in a data.frame")  
+  checkEquals(594, length(M@polygons), "594 shapes representing districts of India")
+  checkEquals(594, dim(M@data)[1], "594 rows of data associated with each district")
+  checkEquals(11, dim(M@data)[2], "various descriptors including names of districts and states") 
+  
+  O <- createOverlay(overlayName)
+  checkTrue(is.data.frame(O), "Data upon districts of Karnataka")
+  checkEqualsNumeric(27, dim(O)[1], "27 districts in Karnataka") 
+  checkEqualsNumeric( 3, dim(O)[2], "Random integers") 
+  
+  M_ <- mergeMO(M@data, O, place="name")
+  M@data <- M_;
+  checkEqualsNumeric(594, dim(M_)[1], "Left join on map data") 
+  checkEqualsNumeric(13, dim(M_)[2], "Left join has added columns")
+  checkEqualsNumeric(1, sum(grepl("value", names(M_))),"Appended data labeled values")
+  checkEqualsNumeric(2, summary(M_$value)["Min."], "Min: 2")
+  checkEqualsNumeric(96, summary(M_$value)["Max."], "Max: 96")
+  checkEqualsNumeric(42, summary(M_$value)["Median"], "Sex ratio Median: 42")
+  checkEqualsNumeric(27, sum(complete.cases(M_$value)), "27 districts match")
+  
   
 }
 
