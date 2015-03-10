@@ -97,7 +97,10 @@ test.KA <- function() {
   checkEqualsNumeric(42, summary(M_$value)["Median"], "Sex ratio Median: 42")
   checkEqualsNumeric(27, sum(complete.cases(M_$value)), "27 districts match")
   
-  
+  F <- flattenMap(M)
+  checkEqualsNumeric(784623, dim(F)[1], "784623 lat-long pairs to plot in district-level map of India")
+  checkEqualsNumeric(20, dim(F)[2], "20 associated variables, including district and state names and overlay data")
+  plotMap(F, "value")  
 }
 
 test.deactivation <- function() {
