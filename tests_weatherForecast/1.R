@@ -48,9 +48,16 @@ test.examples <- function() {
   few <-  c("summary", "icon", 
             "temperatureMin", "temperatureMinTime", 
             "temperatureMax", "temperatureMaxTime",
-            "cloudCover", "humidity", "precipIntensity")
+            "cloudCover", "humidity")
   wea <- weatherForecast(days=21, selection=few)
-  checkEquals(dim(wea)[1], 14, "Two weeks of daily weather data")
+  checkEquals(dim(wea)[1], 21, "Two weeks of daily weather data")
   checkEquals(dim(wea)[2], 9, "Eight weather variables")
-  
+
+  few <-  c("summary", "icon", 
+            "temperatureMin", "temperatureMinTime", 
+            "temperatureMax", "temperatureMaxTime",
+            "cloudCover", "humidity")
+  wea <- weatherForecast(days=49, selection=few)
+  checkEquals(dim(wea)[1], 49, "Two weeks of daily weather data")
+  checkEquals(dim(wea)[2], 9, "Eight weather variables")
 }
