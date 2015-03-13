@@ -16,11 +16,13 @@
 #   Follows the naming convention test.* for functions
 
 test.examples <- function() {
-  tim <- time.seq(14)
+  tim <- time.seq(lat=12.9833, long=77.5833, days=1)
   checkEquals(length(tim), 14, "14 formated dates selected for weather forecast")
   checkTrue(grepl('\\d+T\\d+', tim[1]), "T used to seperate date and time")
   checkTrue(grepl('\\d+-\\d+', tim[1]), "- used to seperate year, month, day")
   checkTrue(grepl('\\d+:\\d+', tim[1]), ": used to seperate hour, minute, second")
+  
+  ret <- call_API(tim)
   
   wea <- weatherForecast(days=2)
   checkEquals(dim(wea)[1], 2, "Two days of daily weather data")
