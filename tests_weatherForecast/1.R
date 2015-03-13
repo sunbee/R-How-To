@@ -16,5 +16,41 @@
 #   Follows the naming convention test.* for functions
 
 test.examples <- function() {
-  w <- weatherForecast()
+  tim <- time.seq(14)
+  checkEquals(length(tim), 14, "14 formated dates selected for weather forecast")
+  checkTrue(grepl('\\d+T\\d+', tim[1]), "T used to seperate date and time")
+  checkTrue(grepl('\\d+-\\d+', tim[1]), "- used to seperate year, month, day")
+  checkTrue(grepl('\\d+:\\d+', tim[1]), ": used to seperate hour, minute, second")
+  
+  wea <- weatherForecast(days=2)
+  checkEquals(dim(wea)[1], 2, "Two days of daily weather data")
+  checkEquals(dim(wea)[2], 2, "One weather variable (summary)")
+  checkTrue(grepl("timestamp", colnames(wea)[1]), "Data is time-stamped")
+  
+  few <- c("summary", "icon", "temperatureMin", "temperatureMax", "humidity")
+  wea <- weatherForecast(days=1, selection=few)
+  checkEquals(dim(wea)[1], 1, "One day of daily weather data")
+  checkEquals(dim(wea)[2], 6, "Five weather variables, time-stamped")
+
+  wea <- weatherForecast(days=21, selection=few)
+  checkEquals(dim(wea)[1], 21, "One day of daily weather data")
+  checkEquals(dim(wea)[2], 6, "Five weather variables, time-stamped")
+  
+  few <-  c("summary", "icon", 
+              "temperatureMin", "temperatureMinTime", 
+              "temperatureMax", "temperatureMaxTime",
+              "cloudCover", "humidity")
+  wea <- weatherForecast(days=14, selection=few)
+  checkEquals(dim(wea)[1], 14, "Two weeks of daily weather data")
+  checkEquals(dim(wea)[2], 9, "Eight weather variables")
+  checkTrue(grepl("timestamp", colnames(wea)[1]), "Data is time-stamped")
+  
+  few <-  c("summary", "icon", 
+            "temperatureMin", "temperatureMinTime", 
+            "temperatureMax", "temperatureMaxTime",
+            "cloudCover", "humidity", "precipIntensity")
+  wea <- weatherForecast(days=21, selection=few)
+  checkEquals(dim(wea)[1], 14, "Two weeks of daily weather data")
+  checkEquals(dim(wea)[2], 9, "Eight weather variables")
+  
 }
