@@ -16,28 +16,37 @@
 #   Follows the naming convention test.* for functions
 
 test.examples <- function() {
-  tim <- time.seq(lat=12.9833, long=77.5833, days=1)
+  tim <- time.seq(lat=40.7142, long=-74.0064, days=2) # New York
+  tim <- time.seq(lat=12.9833, long=77.5833, days=14)
   checkEquals(length(tim), 14, "14 formated dates selected for weather forecast")
   checkTrue(grepl('\\d+T\\d+', tim[1]), "T used to seperate date and time")
   checkTrue(grepl('\\d+-\\d+', tim[1]), "- used to seperate year, month, day")
   checkTrue(grepl('\\d+:\\d+', tim[1]), ": used to seperate hour, minute, second")
   
   ret <- call_API(tim)
+  checkEquals(dim(ret)[1], 35, "35 descriptors of weather")
+  checkEquals(dim(ret)[2], 15, "14 days plus keys column")
   
-  wea <- weatherForecast(days=2)
-  checkEquals(dim(wea)[1], 2, "Two days of daily weather data")
-  checkEquals(dim(wea)[2], 2, "One weather variable (summary)")
-  checkTrue(grepl("timestamp", colnames(wea)[1]), "Data is time-stamped")
+  out <- select(ret, c("all"))
+  checkEquals(dim(out)[1], 35, "All 35 descriptors of weather selected")
+  checkEquals(dim(out)[2], 14, "14 days")
+  out <- select(ret, c("summary", "icon", "humidity"))
+  checkEquals(dim(out)[1], 3, "3 descriptors of weather sub-selected")
+  checkEquals(dim(out)[2], 14, "14 days")
+  
+  out <- select(ret, c("summary", "icon", "humidity", "hdh2ihe9"))
+  checkEquals(dim(out)[1], 3, "3 descriptors of weather sub-selected, 1 ignored")
+  checkEquals(dim(out)[2], 14, "14 days")
+  
+  wea <- weatherForecast(days=7)
+  checkEquals(dim(wea)[1], 1, "1 weather variable reported - summary")
+  checkEquals(dim(wea)[2], 7, "7 days weather forecast")
   
   few <- c("summary", "icon", "temperatureMin", "temperatureMax", "humidity")
-  wea <- weatherForecast(days=1, selection=few)
-  checkEquals(dim(wea)[1], 1, "One day of daily weather data")
-  checkEquals(dim(wea)[2], 6, "Five weather variables, time-stamped")
+  wea <- weatherForecast(days=7, selection=few)
+  checkEquals(dim(wea)[1], 5, "5 descriptors of weather")
+  checkEquals(dim(wea)[2], 7, "7 days weather forecast")
 
-  wea <- weatherForecast(days=21, selection=few)
-  checkEquals(dim(wea)[1], 21, "One day of daily weather data")
-  checkEquals(dim(wea)[2], 6, "Five weather variables, time-stamped")
-  
   few <-  c("summary", "icon", 
               "temperatureMin", "temperatureMinTime", 
               "temperatureMax", "temperatureMaxTime",

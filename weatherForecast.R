@@ -2,7 +2,7 @@
 
 library('jsonlite')
 
-weatherForecast <- function(lat=12.9833, long=77.5833, days=14, selection=c("summary")) {
+weatherForecast <- function(lat=12.9833, long=77.5833, days=14, selection=c("all", "summary")) {
   # Preparatory
   
   # Set up query paramters in time-window
@@ -51,11 +51,17 @@ call_API <- function(lat.long.time) {
 }
 
 select <- function(wal, selection) {
-  # grep time in any row of wal and convert to human-readable form
-  # Subset rows, remove keys column 
-  chosen <- wal$keys %in% selection
-  out <- wal[chosen ,]
-  rownames(out) <- wal$keys[chosen]
+  # TO DO grep time in any row of wal and convert to human-readable form
+  # Check if sub-setting required
+  if (tolower(selection[1])=="all") {
+    out <- wal
+    rownames(out) <- wal$keys
+  } else {
+    # Subset rows, remove keys column 
+    chosen <- wal$keys %in% selection
+    out <- wal[chosen ,]
+    rownames(out) <- wal$keys[chosen]
+  }
   out$keys <- NULL
   out
 }
