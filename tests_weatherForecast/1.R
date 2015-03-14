@@ -38,37 +38,24 @@ test.examples <- function() {
   checkEquals(dim(out)[1], 3, "3 descriptors of weather sub-selected, 1 ignored")
   checkEquals(dim(out)[2], 14, "14 days")
   
-  wea <- weatherForecast(days=7)
-  checkEquals(dim(wea)[1], 1, "1 weather variable reported - summary")
-  checkEquals(dim(wea)[2], 7, "7 days weather forecast")
+  wea <- weatherForecast(days=14)
+  checkEquals(dim(wea)[1], 35, "Reported 35 descriptors of weather")
+  checkEquals(dim(wea)[2], 14, "7 days weather forecast")
+  few <-  c("summary", "icon", 
+            "temperatureMin", "temperatureMinTime", 
+            "temperatureMax", "temperatureMaxTime",
+            "cloudCover", "humidity")
+  out <- wea[few,]
+  checkEquals(dim(out)[1], 5, "5 descriptors of weather selected")
+  checkEquals(dim(out)[2], 14, "14 days weather forecast")
   
-  few <- c("summary", "icon", "temperatureMin", "temperatureMax", "humidity")
-  wea <- weatherForecast(days=7, selection=few)
-  checkEquals(dim(wea)[1], 5, "5 descriptors of weather")
-  checkEquals(dim(wea)[2], 7, "7 days weather forecast")
-
+  
   few <-  c("summary", "icon", 
               "temperatureMin", "temperatureMinTime", 
               "temperatureMax", "temperatureMaxTime",
-              "cloudCover", "humidity")
+              "cloudCover", "humidity", "hfdyhi2w")
   wea <- weatherForecast(days=14, selection=few)
-  checkEquals(dim(wea)[1], 14, "Two weeks of daily weather data")
-  checkEquals(dim(wea)[2], 9, "Eight weather variables")
-  checkTrue(grepl("timestamp", colnames(wea)[1]), "Data is time-stamped")
+  checkEquals(dim(wea)[1], 8, "8 descriptors of weather selected")
+  checkEquals(dim(wea)[2], 14, "14 days weather forecast")
   
-  few <-  c("summary", "icon", 
-            "temperatureMin", "temperatureMinTime", 
-            "temperatureMax", "temperatureMaxTime",
-            "cloudCover", "humidity")
-  wea <- weatherForecast(days=21, selection=few)
-  checkEquals(dim(wea)[1], 21, "Two weeks of daily weather data")
-  checkEquals(dim(wea)[2], 9, "Eight weather variables")
-
-  few <-  c("summary", "icon", 
-            "temperatureMin", "temperatureMinTime", 
-            "temperatureMax", "temperatureMaxTime",
-            "cloudCover", "humidity")
-  wea <- weatherForecast(days=49, selection=few)
-  checkEquals(dim(wea)[1], 49, "Two weeks of daily weather data")
-  checkEquals(dim(wea)[2], 9, "Eight weather variables")
 }
