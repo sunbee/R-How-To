@@ -37,23 +37,6 @@ scrape_page <- function(config_in, config_out) {
   data.frame(out, stringsAsFactors=FALSE)
 }
   
-  
-scrape2 <- function(config_in, config_out) {
-
-  pages <- vector();
-  mon <- paste(config_in$baseURL, config_in$searchYear, "all", sep="/")
-  pages <- cbind(pages, mon)
-  
-  config <- list()
-  for (i in pages) {
-    dat <- scrape_page(config, config_out) 
-  }
-  
-  res <- rbind(res, dat)
-  return(res)
-}
-
-
 refactor <- function() {
   links <- paste0("http://news.monsanto.com", links)
   contents <- vector();
