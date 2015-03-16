@@ -21,3 +21,18 @@ res <- data.frame(title=character(),
 config_out = list(df=res)
 
 o <- scrape_page(config_in, config_out)
+
+p <- o
+q = list(
+  URL=c("http://news.monsanto.com/news-releases/all/2011/all?page=1"),
+  fields = list(
+    content = list(key="content", selector=".pane-pr-body p", type="text")
+  ))
+r <- data.frame(content=character())
+
+link <- paste0("http://news.monsanto.com", o$link)
+for (i in link) {
+  q$URL <- i
+  print(q$URL)
+  res <- scrape_page(q)
+}
