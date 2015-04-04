@@ -43,8 +43,8 @@ rm("a", envir=e)            # Use rm() to remove the binding, value is garbage-c
 ls(e)
 
 x <- 10
-exists(x, envir=e)          # Searches all environments starting with e, following lexical scoping rules
-exists(x, envir=e, inherits=FALSE)    # Searches only the specified env.
+exists("x", envir=e)          # Searches all environments starting with e, following lexical scoping rules
+exists("x", envir=e, inherits=FALSE)    # Searches only the specified env.
 
 identical(globalenv(), environment())
 globalenv() == environment()
@@ -53,11 +53,12 @@ globalenv() == environment()
 # 1. An environment has a parent and has a pointer to the parent.
 # 2. An environment is a bag in the sense of unordered elements.
 # 3. Names within an environment are unique
+# 4: List elements can be removed by setting to NULL
 
 # Q: If you don't supply an explicit environment, where do ls() and rm() look? Where
 #   does <- make bindings?
-# 1. ls() follows the regular scoping rules.
-# 2. rm() follows the regular scoping rules.
+# 1. ls() searches in the global environment (user-defined values).
+# 2. rm() follows the rules of lexical scoping.
 # 3. <- makes a binding in the current environment
 
 mySearch <- function(x, envir=environment()) {
@@ -104,6 +105,8 @@ mySearchAll("x")
 p <- 10
 mySearchAll("p")
 mySearchAll("mean")
+c <- 1
+mySearchAll("c")
 
 # Q: Write your own get() in the style of where()
 myGet <- function(name, envir=environment()) {
@@ -157,6 +160,51 @@ p <- function(x) { x*x }
 environment(p)
 environment(mean)
 
+# Types of environment
+# The enclosing environment determines how the function finds values, 
+# the binding environment determines how we find the function.
+y <- 1
+f <- function(x) { x+y }
+environment(f)                  # The enclosing environment of f()
+e <- new.env()                  
+e$f <- f                        # The binding environment of f()
+e$g <- function() 1
+ls(e)
+ls.str(e)
+e$f(1)
+e$g()
+
+# package and namespace
+# Package functions like var(), sd() have bindings 
+# in the package environment 'package:stats'and 
+# have the namespace as their enclosing environment, so sd() shall always 
+# look for var() in the namespace instead of the search path.
+# This avoids 'namespace pollution' issues where a collision
+# introduces unexpected behavior that can be hard to debug.
+environment(sd)         # Enclosing env., where the function is created - namespace
+where("sd")             # Binding env., where the function is found
+x <- 1:9
+sd(x)                   # sd() uses var() and 
+var <- function() 1     # re-casting var() 
+sd(x)                   # does not affect the behavior of sd()
+
+# Execution environment
+# The parent of the execution environment 
+# is the enclosing environment of the function
+g <- function(x) {
+  if(!exists("a", inherits=FALSE)) {
+    message("Defining a")
+    a <- 1
+  } else {
+    a <- a + 1
+  }
+  a
+}
+g(10)
+g(10)            # Same as above - ephemeral execution env.
+
+# When you define a function within a function, the execution environment 
+# of the outer function is no longer ephemeral. 
 plus <- function(x) {
   function(y) {
     x+y
@@ -171,3 +219,65 @@ parent.env(environment(plus_one))   # Parent env. plus_one's enclosing env. is g
 where("plus")                       # Both have bindings in global env.
 where("plus_one")
 
+# Calling environment
+h <- function() {
+  x <- 10
+  function() {
+    x
+  }
+}
+i <- h()      # Returns the inner (unnamed) function with 'x' in encl. env. set to 10
+x <- 11       # This 'x' is in the binding env. - Red herring!
+i()           # Looks up the variable 'x' in the enclosing env. and returns 10
+parent.frame()
+
+f2 <- function() {
+  x <- 10
+  function() {
+    def <- get("x", environment())    # enclosing environment
+    cll <- get("x",parent.frame())    # calling environment
+    list(defined=def, called=cll)
+  }
+}
+g2 <- f2()
+x <- 20
+str(g2())
+
+x <- 0
+y <- 10
+f <- function() {
+  x <- 1
+  g()
+}
+g <- function() {
+  x <- 2
+  h()
+}
+h <- function() {
+  x <- 3
+  x + y
+}
+f()   # 13
+
+# Q: List the four environments associated with a function. What does each one do?
+# Why is the disctinction between enclosing and binding envs. particularly imp?
+# They are: enclosing, binding, execution and calling environments.
+# The enclosing env. is the parent of the execution env. and that's where the function
+# looks up free variables.
+
+f1 <- function(x1) {
+  print(parent.frame())   # The calling env. of f1 is the global env.
+  print(environment())    # This is the execution env. of f1
+  f2 <- function(x2) {
+    print(parent.frame()) # The calling env. of f2 is the execution env. of f1
+    print(environment())  # This is the execution env. of f2
+    f3 <- function(x3) {
+      print(parent.frame()) # The calling env. of f3 is the execution env. of f2
+      print(environment())  # This is      
+      x1 + x2 + x3
+    }
+    f3(3)
+  }
+  f2(2)
+}
+f1(1)
