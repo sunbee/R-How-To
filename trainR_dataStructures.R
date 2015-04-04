@@ -67,7 +67,7 @@ tryCatch(checkEquals(a, e, msg),
 
 seq(1, 9, length=5) # Try it!
 e <- c(1,3,5,7,9)   # What to expect
-a <- e
+a <- e              # Your input
 msg <- "Create a sequence from 1 to 9 of length 5"
 tryCatch(checkEquals(a, e, msg), 
          error = function(e) print(msg, quote=FALSE))
@@ -89,4 +89,22 @@ tryCatch(checkEquals(a, e, msg),
 seq(1, length=5, by=2)  # Try it!
 e <- c(1,3,5,7,9)   # What to expect
 a <- e              # Your input
-msg <- "Create a sequence from 1 of length 5 in steps of 5."
+msg <- "Create a sequence from 1 of length 5 in steps of 2."
+
+msg <- "Don't overwhelm it with all arguments specified."
+tryCatch(seq(1, 9, length=5, by=2), 
+         error = function(e) print(msg, quote=FALSE))
+
+seq(1, length=5, 2)                 # Try it!
+e <- c(1.00,1.25,1.50,1.75,2.00)    # What to expect
+a <- e                              # Your input
+msg <- "Create a sequence with defined end-points and length and auto-calculated interval. Same as seq(1,2,length=5)"
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+seq(1, length=5, 7)                 # Try it!
+e <- c(1.0,2.5,4.0,5.5,7.0)         # What to expect
+a <- e                              # Your input
+msg <- "Create a sequence with defined end-points and length and auto-calculated interval. Same as seq(1,7,length=5)"
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
