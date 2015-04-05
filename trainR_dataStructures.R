@@ -215,7 +215,20 @@ msg <- "An out-size index does not throw an error. It returns a missing value."
 tryCatch(checkEquals(a, e, msg), 
          error = function(e) print(msg, quote=FALSE))
 
-x[0]
+x[0]                # Try it!
+e <- numeric(0)     # What to expect
+a <- e              # Your input
+msg <- "Numeric vector of length zero. Same as: numeric(length=0)."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+length(x[c(4,0,1)])         # Try it!
+e <- 2                      # What to expect
+a <- e                      # Your input
+msg <- "Retrieve a vector of length 0 with index 0."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
 # Module: Subset by exclusion
 
 x <- c(11,30,2,14)  # Data
@@ -245,19 +258,6 @@ msg <- "Don't mix negative and positive indices."
 tryCatch(x[c(-4,1)], 
          error = function(e) print(msg, quote=FALSE))
 
-x[0]                # Try it!
-e <- numeric(0)     # What to expect
-a <- e              # Your input
-msg <- "Numeric vector of length zero. Same as: numeric(length=0)."
-tryCatch(checkEquals(a, e, msg), 
-         error = function(e) print(msg, quote=FALSE))
-
-length(x[c(4,0,1)])         # Try it!
-e <- 2                      # What to expect
-a <- e                      # Your input
-msg <- "Numeric vector of length zero. Same as: numeric(length=0)."
-tryCatch(checkEquals(a, e, msg), 
-         error = function(e) print(msg, quote=FALSE))
 
 # Function Factory
 
