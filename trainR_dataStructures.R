@@ -108,3 +108,30 @@ a <- e                              # Your input
 msg <- "Create a sequence with defined end-points and length and auto-calculated interval. Same as seq(1,7,length=5)"
 tryCatch(checkEquals(a, e, msg), 
          error = function(e) print(msg, quote=FALSE))
+
+
+# Function Factory
+
+makeTest <- function(code_snippet, expected_outcome, lesson, hint ) {
+  function() {
+    cat("What is the output of:\t")
+    print(code_snippet)
+    target <- as.character(expected_outcome)[3]
+    actual <- readline(prompt="Type here: ")
+    compareStrings(target, actual)
+  }
+}
+f <- makeTest(quote(seq(1, length=5, 7)), quote(e <- c(1.0,2.5,4.0,5.5,7.0)))
+checkTrue(f(), "Check your answer, expects c(1,2.5,4,5.5,7) for TRUE.") 
+
+compareStrings <- function(target, actual) {
+  target <- gsub("\\s+", "", target)  
+  actual <- gsub("\\s+", "", actual)
+  return(target==actual)
+}
+# Test:
+aa <- quote(e <- c(1, 2.5, 4, 5.5, 7))
+bb <- "c(1, 2.5, 4, 5.5, 7)"
+checkTrue(compareStrings(as.character(aa)[3], bb), 
+          "Compare strings by eliminating whitespaces")
+
