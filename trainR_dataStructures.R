@@ -109,11 +109,149 @@ msg <- "Create a sequence with defined end-points and length and auto-calculated
 tryCatch(checkEquals(a, e, msg), 
          error = function(e) print(msg, quote=FALSE))
 
+# Module: Execute a function on each element of a vector
+x <- c(1.2,1,3)
+
+x+2                 # Try it!
+e <- c(2.2,3,5)     # What to expect
+a <- e              # Your input
+msg <- "It is common for a function to operate over the elements of a vector. An explicit loop is not needed."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+# Module: Execute a function on each element of a vector
+x <- c(1.2,1,3)
+
+x+2                 # Try it!
+e <- c(2.2,3,5)     # What to expect
+a <- e              # Your input
+msg <- "It is common for a function to operate over the elements of a vector. An explicit loop is not needed."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x>1                         # Try it!
+e <- c(TRUE, FALSE,TRUE)    # What to expect
+a <- e                      # Your input
+msg <- "It is common for a function to operate over the elements of a vector. An explicit loop is not needed."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x+c(1,2)                    # Try it!
+e <- c(TRUE, FALSE,TRUE)    # What to expect
+a <- e                      # Your input
+msg <- "It is common for a function to operate over the elements of a vector. An explicit loop is not needed."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+# Module: Retrieve contents of a vector by subsetting
+
+x <- c(11,30,2)     # Data
+
+x[2]                # Try it!
+e <- 30             # What to expect
+a <- e              # Your input
+msg <- "A vector is an ordered collection of  elements. x[2] retrieves the second element of x, namely 30."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[-2]               # Try it!
+e <- c(11,2)        # What to expect
+a <- e              # Your input
+msg <- "Use negative indexing to exclude elements. x[-2] retrieves all but the second element of x."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[c(TRUE, FALSE,TRUE)]    # Try it!
+e <- c(11,2)              # What to expect
+a <- e                    # Your input
+msg <- "Use TRUE/FALSE for subset selection."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[]                 # Try it!
+e <- c(11,30,2)     # What to expect
+a <- e              # Your input
+msg <- "Obtain all of x. Useful for setting all elements to a value."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[] <- 0            # Try it!
+e <- c(0,0,0)       # What to expect
+a <- e              # Your input
+msg <- "Set all of x to zero."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+# Module: Subset by position
+
+x <- c(11,30,2,14)  # Data
+
+x[3]                # Try it!
+e <- 2              # What to expect
+a <- e              # Your input
+msg <- "Include only element at index 3."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[3]                # Try it!
+e <- 2              # What to expect
+a <- e              # Your input
+msg <- "Include only element at index 3."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+length(x[2:4])      # Try it!
+e <- 3              # What to expect
+a <- e              # Your input
+msg <- "Include only elements in the specified range."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[c(4,2)][1]        # Try it!
+e <- 14             # What to expect
+a <- e              # Your input
+msg <- "Include only elements in the specified range."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+# Module: Subset by exclusion
+
+x <- c(11,30,2,14)  # Data
+
+length(x[-3])       # Try it!
+e <- 3              # What to expect
+a <- e              # Your input
+msg <- "Exclude only element at index 3."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[-(2:3)]           # Try it!
+e <- c(11,14)       # What to expect
+a <- e              # Your input
+msg <- "Exclude elements in the specified range."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[-c(4,2)]          # Try it!
+e <- c(11,2)        # What to expect
+a <- e              # Your input
+msg <- "Exclude elements at 4th and 2nd position."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+msg <- "Exclude elements at 4th and 2nd position."
+tryCatch(checkEquals(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+msg <- "Don't mix negative and positive indices."
+tryCatch(x[c(-4,1)], 
+         error = function(e) print(msg, quote=FALSE))
 
 # Function Factory
 
-makeTest <- function(code_snippet, expected_outcome, lesson, hint ) {
+makeTest <- function(code_snippet, expected_outcome, lesson=NULL, hint=NULL ) {
   function() {
+    if (!is.null(lesson)) print(lesson)
     cat("What is the output of:\t")
     print(code_snippet)
     target <- as.character(expected_outcome)[3]
@@ -121,8 +259,13 @@ makeTest <- function(code_snippet, expected_outcome, lesson, hint ) {
     compareStrings(target, actual)
   }
 }
-f <- makeTest(quote(seq(1, length=5, 7)), quote(e <- c(1.0,2.5,4.0,5.5,7.0)))
+f <- makeTest(quote(seq(1, length=5, 7)), 
+              quote(e <- c(1.0,2.5,4.0,5.5,7.0)))
 checkTrue(f(), "Check your answer, expects c(1,2.5,4,5.5,7) for TRUE.") 
+g <- makeTest(lesson=quote(x <- c(1.2,1,3)), 
+              code_snippet=quote(x+2),
+              expected_outcome=quote(e <- c(3.2,3,5)))
+checkTrue(g(), "Check your answer, expects c(3,2,3,5) for TRUE.") 
 
 compareStrings <- function(target, actual) {
   target <- gsub("\\s+", "", target)  
