@@ -11,6 +11,7 @@ fetchTimeStamps <- function(timeStamps) {
   read.csv(timeStamps)
 }
 
+
 getWeather <- function(lat, long, timeStamp) {
   baseurl <- "https://api.forecast.io/forecast";
   weather_key <- "46eeedf6b77b5fd07561a80cbe88ae39"
