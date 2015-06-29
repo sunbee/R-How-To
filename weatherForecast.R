@@ -1,4 +1,11 @@
 # function weatherForecast
+# Developed for streamlining greenhouse operations
+# Cloudy skies affect the success of lab activity
+# with corn from the greenhouse. The script
+# generates a weather forecast for a window of time.
+# The greenhouse manager takes a call to hold of sowing
+# based on the no. of days with cloudy skies
+# in the forecase over the next 15 days.
 
 library('jsonlite')
 
