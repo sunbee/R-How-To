@@ -115,7 +115,7 @@ x <- c(1.2,1,3)
 x+2                 # Try it!
 e <- c(2.2,3,5)     # What to expect
 a <- e              # Your input
-msg <- "It is common for a function to operate over the elements of a vector. An explicit loop is not needed."
+msg <- "Operate over all elements of a vector. This is the common behavior of a function in R. An explicit loop is not needed."
 tryCatch(checkEquals(a, e, msg), 
          error = function(e) print(msg, quote=FALSE))
 
@@ -125,7 +125,7 @@ x <- c(1.2,1,3)
 x+2                 # Try it!
 e <- c(2.2,3,5)     # What to expect
 a <- e              # Your input
-msg <- "It is common for a function to operate over the elements of a vector. An explicit loop is not needed."
+msg <- "Operate over all elements of a vector. This is the common behavior of a function in R. An explicit loop is not needed."
 tryCatch(checkEquals(a, e, msg), 
          error = function(e) print(msg, quote=FALSE))
 
@@ -258,6 +258,38 @@ msg <- "Don't mix negative and positive indices."
 tryCatch(x[c(-4,1)], 
          error = function(e) print(msg, quote=FALSE))
 
+# Module: Subset by name
+
+x <- c(hema=11, raju=12,p=2,x=14)
+
+x["hema"]           # Try it!
+e <- 11             # What to expect
+a <- e              # Your input
+msg <- "Retrieve element named Hema."
+tryCatch(checkEqualsNumeric(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+msg <- "Supply the name as a quoted string or use a variable in the current workspace."
+tryCatch(x[hema], 
+         error = function(e) print(msg, quote=FALSE))
+
+msg <- "Cannot negate by name."
+tryCatch(x[-"hema"], 
+         error = function(e) print(msg, quote=FALSE))
+
+x[c("hema", "p")]   # Try it!
+e <- c(11,2)        # What to expect
+a <- e              # Your input
+msg <- "Retrieve elements named hema and p."
+tryCatch(checkEqualsNumeric(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
+
+x[x]   # Try it!
+e <- c(NA,NA,12,NA) # What to expect
+a <- e              # Your input
+msg <- "Retrieve elements of x using data in x as indices. Finds data at only one position."
+tryCatch(checkEqualsNumeric(a, e, msg), 
+         error = function(e) print(msg, quote=FALSE))
 
 # Function Factory
 
