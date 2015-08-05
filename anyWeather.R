@@ -1,39 +1,37 @@
 # function getWeather
 # Get the weather at any time, anywhere
 
+# Obtain the necessary functions
+wdir <- "c:/Users/ssbhat3/Desktop/R-How-To/"
+setwd(wdir)
+source('weatherMasterTemplate.R')
+
+# Load R libraries
 library(plyr)
 library(data.table)
+library('jsonlite')
 
-fetchLocations <- function(locations) {
-  read.csv(locations)
-}
-
-fetchTimeStamps <- function(timeStamps) {
-  read.csv(timeStamps, stringsAsFactors=FALSE)
-}
-
-base <- "C:/Users/ssbhat3/Desktop/R-HOW-TO/"
+# Set up data for operations
 locations <- "locations.csv"
-locations <- paste0(base, locations)
+locations <- paste0(wdir, locations)
 timestamps <- "timestamps.csv"
-timestamps <- paste0(base, timestamps)
+timestamps <- paste0(wdir, timestamps)
 
+# Get locations, timestamps for query
 loc <- fetchLocations(locations)
 tim <- fetchTimeStamps(timestamps)
 
+# Flatten location and time data
 locTim <- merge(loc, tim)
 
-getWeather <- function(lat, long, timeStamp) {
-  baseurl <- "https://api.forecast.io/forecast";
-  weather_key <- "46eeedf6b77b5fd07561a80cbe88ae39"
-  
-  lat.long.time <- paste(lat, long, timeStamp, sep=",")
-  sourceURL <- paste(baseurl, weather_key, lat.long.time, sep="/")
-  
-  sourceURL
-  w <- fromJSON(sourceURL)
-  w
-}
+# Call the API
+DT <- as.data.table(locTim)
+ot <- DT[1:3, getWeather(Latitude, Longitude, Timestamp)$current$temperature, by=Locations]
+ol <- DT[1:3, getWeather(Latitude, Longitude, Timestamp), by=Locations]
+ov <- DT[1:3, list(vecGetWeather(Latitude, Longitude, Timestamp))]
+names(ov$V1[[3]]) # Currently, hourly, daily, etc.
 
-w <- getWeather(lat="12.9833", long="77.5833", timeStamp="2015-06-29T12:00:00+0530")
+oR <- DT[1:3, vecGetWeatherRecord(Latitude, Longitude, Timestamp, weatherMasterTemplate)]
+
+
 

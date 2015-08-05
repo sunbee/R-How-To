@@ -9,16 +9,19 @@ library('jsonlite')
 # https://developer.forecast.io/
 # uid|pwd: sanjay.bhatikar@gmail.com | Em01an12
 
-# Weather at a given time
+# Weather at a given time - past, present, future
 baseurl <- "https://api.forecast.io/forecast";
 weather_key <- "46eeedf6b77b5fd07561a80cbe88ae39"
 lat.long.los.angeles = "37.8267,-122.423"
 lat.long.bangalore = "12.9833,77.5833"
+lat.long.bangalore = "12.xyz,77.5833"
 sourceURL <- paste(baseurl, weather_key, lat.long.bangalore, sep="/")
 timeStamp <- "2015-06-06T12:00:00-0400"
 sourceURL <- paste(sourceURL, timeStamp, sep=",")
 w2 <- fromJSON(sourceURL)
 
+showConnections()
+closeAllConnections()
 # Current Forecast
 baseurl <- "https://api.forecast.io/forecast";
 weather_key <- "46eeedf6b77b5fd07561a80cbe88ae39"
