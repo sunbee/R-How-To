@@ -31,3 +31,6 @@ rec <- vecGetWeatherRecord(locTim$Latitude,
                            locTim$Timestamp, 
                            weatherMasterTemplate)
 
+out <- do.call(rbind, rec)
+
+# Now with data.table
