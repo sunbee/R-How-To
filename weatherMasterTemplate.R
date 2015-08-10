@@ -1,4 +1,3 @@
-
 # Extract day's weather from weather object
 getWeatherRecord <- function(lat, long, timeStamp, template) {
   tryCatch({
@@ -19,7 +18,7 @@ getWeatherRecord <- function(lat, long, timeStamp, template) {
 
 vecGetWeatherRecord <- Vectorize(getWeatherRecord, 
                                  vectorize.args=c("lat", "long", "timeStamp"),
-                                 SIMPLIFY=TRUE)
+                                 SIMPLIFY=FALSE)
 
 # Template for record of weather data (32 variables)
 weatherMasterTemplate <- data.frame(
@@ -71,15 +70,16 @@ flattenWeatherList <- function(myList, myTemplate) {
     } else {
       appendage <- myList[[x]]
     }
-    c(myTemplate[[x]], appendage)
+    # c(myTemplate[[x]], appendage) # To preserve classes 
+    appendage
   })
   do.call(data.frame, setNames(ret, names(myTemplate)))
 }
 
 # TEST # out <- flattenWeatherList(list(time=1435559400,summary="Mostly Cloudy",x=777), weatherMiniTemplate)
-# TEST # out <- flattenWeatherList(w$daily$data, weatherMasterTemplate)
 # TEST # 
-out <- flattenWeatherList(list(time=1435559400,summary="Mostly Cloudy",x=777), weatherMasterTemplate)
+out <- flattenWeatherList(w$daily$data, weatherMasterTemplate)
+# TEST # out <- flattenWeatherList(list(time=1435559400,summary="Mostly Cloudy",x=777), weatherMasterTemplate)
 
 # Get weather object at a location and at a time
 getWeather <- function(lat, long, timeStamp) {
@@ -97,7 +97,6 @@ getWeather <- function(lat, long, timeStamp) {
 vecGetWeather <- Vectorize(getWeather, SIMPLIFY=FALSE)
 
 # TEST # w <- getWeather(lat="12.9833", long="77.5833", timeStamp="2015-06-29T12:00:00+0530")
-
 
 # Read files with data upon location and days
 fetchLocations <- function(locations) {
