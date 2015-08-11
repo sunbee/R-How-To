@@ -22,8 +22,7 @@ loc <- fetchLocations(locations)
 tim <- fetchTimeStamps(timestamps)
 
 # Flatten location and time data
-locTim <- merge(loc, tim)
-locTim <- locTim[1:3,]
+locTim <- merge(loc, tim) #locTim <- locTim[1:3,]
 
 # Invoke the API (on vectorized function)
 rec <- vecGetWeatherRecord(locTim$Latitude, 
