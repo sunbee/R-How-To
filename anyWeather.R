@@ -31,6 +31,8 @@ rec <- vecGetWeatherRecord(locTim$Latitude,
                            locTim$Timestamp, 
                            weatherMasterTemplate)
 
+# Put blocks together and write out file
 out <- do.call(rbind, rec)
+out <- cbind(locTim, out)
+write.csv(out, file="out.csv", append=TRUE)
 
-# Now with data.table
