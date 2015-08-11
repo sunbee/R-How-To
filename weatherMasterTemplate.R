@@ -77,8 +77,7 @@ flattenWeatherList <- function(myList, myTemplate) {
 }
 
 # TEST # out <- flattenWeatherList(list(time=1435559400,summary="Mostly Cloudy",x=777), weatherMiniTemplate)
-# TEST # 
-out <- flattenWeatherList(w$daily$data, weatherMasterTemplate)
+# TEST # out <- flattenWeatherList(w$daily$data, weatherMasterTemplate)
 # TEST # out <- flattenWeatherList(list(time=1435559400,summary="Mostly Cloudy",x=777), weatherMasterTemplate)
 
 # Get weather object at a location and at a time
