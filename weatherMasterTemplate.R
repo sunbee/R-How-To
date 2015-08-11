@@ -91,6 +91,7 @@ getWeather <- function(lat, long, timeStamp) {
   
   sourceURL
   w <- fromJSON(sourceURL)
+  w$daily$data$temperature <- w$currently$temperature
   w
 }
 
