@@ -44,7 +44,7 @@ It generates the following weather forecast for Bangalore. Refer the API docs [h
 ```{r}
 w$currently$summary
 ```
-The forecast is *Mostly Cloudy* for that day. What if I have a set of lat-long coordinates with time-stamps in a table that I want to fetch weather data for? 
+The forecast is *Mostly Cloudy* for that day. What if I have a list of geo-coded locations(lat-long coordinates with time-stamps) that I want to fetch weather data for? 
 
 Locations |  Latitude | Longitude | Timestamp
 ----------|----------|-----------|----------
@@ -60,21 +60,20 @@ Adra	| 23.50000	| 86.70000	| 2015-06-29T12:00:00+0530
 Agar	| 23.06667	| 76.03333	| 2015-06-29T12:00:00+0530
 Agartala	| 23.08333	| 91.38333	| 2015-06-29T12:00:00+0530
 
-I can loop over the rows in the table. A more elegant solution is to vectorize the function.
+The obvious solution is to loop over the rows in the table. That can be clumsy and error-prone. The elegant solution is to vectorize the function.
 
 ## Execution
 Use the `Vectorize` function.
 ```{r}
 vecGetWeather <- Vectorize(getWeather, SIMPLIFY=FALSE)
 ```
-The function is now ready to accept lists as inputs. In general, the output is a list of the same size as the input. 
+The function is now ready to accept lists as inputs. That's all there is to it! In general, the output is a list of the same size as the input. 
 ```{r}
 out <- vecGetWeather(lat=c(26.40000, 30.16667, 24.68333), 
                       long=c(90.63333, 74.16667, 72.83333), 
                       timeStamp="2015-06-29T12:00:00+0530")
 ```
-Build on the illustration. Read the table into R. Supply the inputs as vectors.
-
+Build on this illustration. Read the table into R. Supply the inputs as vectors.
 
 ## Output
 1. **Input**: We have supplied three pairs of lat-long coordinates in separate lists per the interface. The lone time-stamp is the odd man out. It is recycled thrice. 
@@ -86,4 +85,4 @@ Note that:
 3. R expects vectorization as the default behavior from functions.
 
 # Conclusion
-Vectorization in R is awesome. It avoids the need for looping over rows of data. R expects vectorization as the default behavior. Use the simplicity and elegance of `Vectorize` to take your functions into pro category. 
+Vectorization in R is as painless as it is awesome. It avoids the need for clumsily looping over rows of data. As a matter of fact, R expects vectorization as the default behavior of your functions. Use the simplicity and elegance of `Vectorize` to take your coding into pro territory. 
