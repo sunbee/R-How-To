@@ -1,0 +1,37 @@
+---
+title: "How To: Intersect Two Sets"
+author: "[Sanjay Bhatikar](https://in.linkedin.com/in/sanjaybhatikar)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Problem Statement
+Find common items in two lists. This is equivalent to a Venn Diagram.
+
+# Solution Sketch
+Use the operator `%in%` to find what two lists have in common.
+
+## Data prepration
+I want to find which actors from my list of favorites are also Oscar winners.
+```{r}
+favoriteActors <- c("Sean Connery", "Clint Eastwood", "Marlon Brando")
+oscarWinners <- c("Marlon Brando", "Daniel Day-Lewis", "Tom Hanks", "Sean Penn", "Jack Nicholson")
+```
+## Execution
+Which favorite actors are Oscar winners? Compare using `intersect`.
+```{r echo=TRUE}
+intersect(favoriteActors, oscarWinners)
+```
+What's left out? Compare using `setdiff`.
+```{r echo=TRUE}
+setdiff(favoriteActors, oscarWinners)
+```
+Compare using the `%in%` operator.
+```{r echo=TRUE}
+setdiff(favoriteActors, oscarWinners)
+```
+## Output
+So only Marlon Brando makes the cut.
+
+# Conclusion
+Set operations for lists are quick and painless. Don't bother with loops. Instead, use any of the functions for set operations. 
