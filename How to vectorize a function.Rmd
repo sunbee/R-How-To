@@ -23,7 +23,7 @@ library(jsonlite)
 # Get weather object at a location and at a time
 getWeather <- function(lat, long, timeStamp) {
   baseurl <- "https://api.forecast.io/forecast";
-  weather_key <- "46eeedf6b77b5fd07561a80cbe88ae39"
+  weather_key <- "get_your_own_dude"; 
   
   lat.long.time <- paste(lat, long, timeStamp, sep=",")
   sourceURL <- paste(baseurl, weather_key, lat.long.time, sep="/")
@@ -35,7 +35,7 @@ getWeather <- function(lat, long, timeStamp) {
 }
 
 ```
-Execute the funtion as follows. 
+Note that you need to register your app with the API, get a key and paste the string in the code for the function to run. Execute the funtion as follows. 
 ```{r}
 w <- getWeather(lat="12.9833", long="77.5833", timeStamp="2015-06-29T12:00:00+0530")
 ```
@@ -74,13 +74,13 @@ out <- vecGetWeather(lat=c(26.40000, 30.16667, 24.68333),
                       long=c(90.63333, 74.16667, 72.83333), 
                       timeStamp="2015-06-29T12:00:00+0530")
 ```
-*Input*: We have supplied three pairs of lat-long coordinates in separate lists per the interface. The lone time-stamp is the odd man out. It is recycled thrice. 
-*Output*: It is a list of three items corresponding to the input. Each item is the result of a single API query. 
+**Input**: We have supplied three pairs of lat-long coordinates in separate lists per the interface. The lone time-stamp is the odd man out. It is recycled thrice. 
+**Output**: It is a list of three items corresponding to the input. Each item is the result of a single API query. 
 
 Note that:
-- The vectorized version of a function accepts lists and returns a list.
-- Where input lists are of unequal size, elements are recycled.
-- R expects vectorization as the default behavior from functions.
+* The vectorized version of a function accepts lists and returns a list.
+* Where input lists are of unequal size, elements are recycled.
+* R expects vectorization as the default behavior from functions.
 
 # Conclusion
-Vectorization..
+Vectorization in R is awesome. It avoids the need for looping over rows of data. R expects vectorization as the default behavior. Use the simplicity and elegance of `Vectorize` to take your functions into pro category. 
