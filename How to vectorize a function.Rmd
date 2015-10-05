@@ -68,14 +68,14 @@ Agartala	| 23.08333	| 91.38333	| 2015-06-29T12:00:00+0530
 Can you think of putting the vectorized behavior of `vecGetWeather` to use?
 
 ## Output
-Read the table into R. Work off the model shown.
+Build on the illustration. Read the table into R. Supply the inputs as vectors.
 ```{r}
 out <- vecGetWeather(lat=c(26.40000, 30.16667, 24.68333), 
                       long=c(90.63333, 74.16667, 72.83333), 
                       timeStamp="2015-06-29T12:00:00+0530")
 ```
-Examine the input. It supplies three pairs of lat-long coordinates in separate lists. The lone time-stamp is the odd man out. It is recycled thrice. 
-Examine the output. It is a list of three items. Each of these three items is the result of an API query with latitude, longitude and time-stamp. 
+*Input*: We have supplied three pairs of lat-long coordinates in separate lists per the interface. The lone time-stamp is the odd man out. It is recycled thrice. 
+*Output*: It is a list of three items corresponding to the input. Each item is the result of a single API query. 
 
 Note that:
 - The vectorized version of a function accepts lists and returns a list.
@@ -83,20 +83,4 @@ Note that:
 - R expects vectorization as the default behavior from functions.
 
 # Conclusion
-
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
-summary(cars)
-```
-
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Vectorization..
