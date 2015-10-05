@@ -12,9 +12,9 @@ You have packaged code in a function. Now you want to change the default behavio
 Use `Vectorize`. 
 
 ## Data Preparation
-Priya, who manages my greenhouses in Bangalore, wants a weather forecast for the next 15 days. We grow a special variety of corn in the greenhouse. Her experience is that the number of cloudy days over the crop cycle affects yield. The more the number of cloudy days, the lower the yield. She can plan the greenhouse activities more effectively with a weather forecast sent daily to her over mail.
+Priya, who manages my greenhouses in Bangalore, wants a weather forecast for the next 15 days. We grow a special variety of corn in the greenhouse. Her experience is that the number of cloudy days over the crop cycle affects yield. The more the number of cloudy days, the lower the yield. As we grow corn all year round, she can plan the greenhouse activities more effectively with a weather forecast sent daily to her over mail.
 
-The Dark Sky API provides the weather at any time, anywhere in the world. To look up  the weather forecast for Bangalore, for example, see [here](http://forecast.io/#/f/12.9833,77.5833). I have written a function to fetch a forcast.
+The Dark Sky API provides the weather at any time, anywhere in the world. To look up  the weather forecast for Bangalore, for example, see [here](http://forecast.io/#/f/12.9833,77.5833). I have written a function `getWeather` to fetch a forecast with a geo-coded location and time-stamp.
 
 ```{r results='hide'}
 library(jsonlite)
@@ -36,7 +36,7 @@ getWeather <- function(lat, long, timeStamp) {
 }
 
 ```
-Note that you need to register your app with the API, get a key and paste the string in the code for the function to run. Execute the funtion as follows. 
+Note that you need to register your app with the API, get a key and paste the string in the commented code for the function to run. Once past the preliminaries, execute the function as follows. 
 ```{r}
 w <- getWeather(lat="12.9833", long="77.5833", timeStamp="2015-06-29T12:00:00+0530")
 ```
@@ -44,17 +44,11 @@ It generates the following weather forecast for Bangalore. Refer the API docs [h
 ```{r}
 w$currently$summary
 ```
-What if I have a set of lat-long coordinates with time-stamps in a table that I want to fetch weather data for? I can loop over the rows in the table. A more elegant solution is to vectorize.
+The forecast is *Mostly Cloudy* for that day. What if I have a set of lat-long coordinates with time-stamps in a table that I want to fetch weather data for? 
 
-## Execution
-Use the `Vectorize` function.
-```{r}
-vecGetWeather <- Vectorize(getWeather, SIMPLIFY=FALSE)
-```
-
-Locations |	Latitude | Longitude | Timestamp
+Locations |  Latitude | Longitude | Timestamp
 ----------|----------|-----------|----------
-Abhayapuri |	26.40000 |	90.63333 |	2015-06-29T12:00:00+0530
+Abhayapuri |  26.40000 |	90.63333 |	2015-06-29T12:00:00+0530
 Abohar | 30.16667 |	74.16667	| 2015-06-29T12:00:00+0530
 Abu |	24.68333	| 72.83333	| 2015-06-29T12:00:00+0530
 Achalpur	| 21.36667	| 77.53333	| 2015-06-29T12:00:00+0530
@@ -66,22 +60,30 @@ Adra	| 23.50000	| 86.70000	| 2015-06-29T12:00:00+0530
 Agar	| 23.06667	| 76.03333	| 2015-06-29T12:00:00+0530
 Agartala	| 23.08333	| 91.38333	| 2015-06-29T12:00:00+0530
 
-Can you think of putting the vectorized behavior of `vecGetWeather` to use?
+I can loop over the rows in the table. A more elegant solution is to vectorize the function.
 
-## Output
-Build on the illustration. Read the table into R. Supply the inputs as vectors.
+## Execution
+Use the `Vectorize` function.
+```{r}
+vecGetWeather <- Vectorize(getWeather, SIMPLIFY=FALSE)
+```
+The function is now ready to accept lists as inputs. In general, the output is a list of the same size as the input. 
 ```{r}
 out <- vecGetWeather(lat=c(26.40000, 30.16667, 24.68333), 
                       long=c(90.63333, 74.16667, 72.83333), 
                       timeStamp="2015-06-29T12:00:00+0530")
 ```
-**Input**: We have supplied three pairs of lat-long coordinates in separate lists per the interface. The lone time-stamp is the odd man out. It is recycled thrice. 
-**Output**: It is a list of three items corresponding to the input. Each item is the result of a single API query. 
+Build on the illustration. Read the table into R. Supply the inputs as vectors.
+
+
+## Output
+1. **Input**: We have supplied three pairs of lat-long coordinates in separate lists per the interface. The lone time-stamp is the odd man out. It is recycled thrice. 
+2. **Output**: It is a list of three items corresponding to the input. Each item is the result of a single API query. 
 
 Note that:
-* The vectorized version of a function accepts lists and returns a list.
-* Where input lists are of unequal size, elements are recycled.
-* R expects vectorization as the default behavior from functions.
+1. The vectorized version of a function accepts lists and returns a list.
+2. Where input lists are of unequal size, elements are recycled.
+3. R expects vectorization as the default behavior from functions.
 
 # Conclusion
 Vectorization in R is awesome. It avoids the need for looping over rows of data. R expects vectorization as the default behavior. Use the simplicity and elegance of `Vectorize` to take your functions into pro category. 
