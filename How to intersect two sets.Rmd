@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # Problem Statement
-Find common items in two lists. This is equivalent to a Venn Diagram.
+Find common items in two lists. This is equivalent to a Venn diagram.
 
 # Solution Sketch
 Use the operator `%in%` to find what two lists have in common.

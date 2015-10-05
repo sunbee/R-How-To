@@ -1,0 +1,102 @@
+---
+title: "How to vectorize a function"
+author: "[Sanjay Bhatikar](https://in.linkedin.com/in/sanjaybhatikar)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Problem Statement
+You have packaged code in a function. Now you want to change the default behavior of the function to work with lists. This is consistent with the spirit of R. How do you magically endow your function to chow through lists?
+
+# Solution Sketch
+Use `Vectorize`. 
+
+## Data Preparation
+Priya, who manages my greenhouses in Bangalore, wants a weather forecast for the next 15 days. We grow a special variety of corn in the greenhouse. Her experience is that the number of cloudy days over the crop cycle affects yield. The more the number of cloudy days, the lower the yield. She can plan the greenhouse activities more effectively with a weather forecast sent daily to her over mail.
+
+The Dark Sky API provides the weather at any time, anywhere in the world. To look up  the weather forecast for Bangalore, for example, see [here](http://forecast.io/#/f/12.9833,77.5833). I have written a function to fetch a forcast.
+
+```{r results='hide'}
+library(jsonlite)
+```
+```{r }
+# Get weather object at a location and at a time
+getWeather <- function(lat, long, timeStamp) {
+  baseurl <- "https://api.forecast.io/forecast";
+  weather_key <- "46eeedf6b77b5fd07561a80cbe88ae39"
+  
+  lat.long.time <- paste(lat, long, timeStamp, sep=",")
+  sourceURL <- paste(baseurl, weather_key, lat.long.time, sep="/")
+  
+  sourceURL
+  w <- fromJSON(sourceURL)
+  w$daily$data$temperature <- w$currently$temperature
+  w
+}
+
+```
+Execute the funtion as follows. 
+```{r}
+w <- getWeather(lat="12.9833", long="77.5833", timeStamp="2015-06-29T12:00:00+0530")
+```
+It generates the following weather forecast for Bangalore. Refer the API docs [here](https://developer.forecast.io/docs). 
+```{r}
+w$currently$summary
+```
+What if I have a set of lat-long coordinates with time-stamps in a table that I want to fetch weather data for? I can loop over the rows in the table. A more elegant solution is to vectorize.
+
+## Execution
+Use the `Vectorize` function.
+```{r}
+vecGetWeather <- Vectorize(getWeather, SIMPLIFY=FALSE)
+```
+
+Locations |	Latitude | Longitude | Timestamp
+----------|----------|-----------|----------
+Abhayapuri |	26.40000 |	90.63333 |	2015-06-29T12:00:00+0530
+Abohar | 30.16667 |	74.16667	| 2015-06-29T12:00:00+0530
+Abu |	24.68333	| 72.83333	| 2015-06-29T12:00:00+0530
+Achalpur	| 21.36667	| 77.53333	| 2015-06-29T12:00:00+0530
+Acher	| 23.16667	| 72.53333	| 2015-06-29T12:00:00+0530
+Adhoi	| 23.43333	| 70.53333	| 2015-06-29T12:00:00+0530
+Adilabad	| 19.55000	| 78.33333	| 2015-06-29T12:00:00+0530
+Adoni	| 15.55000	| 77.30000	| 2015-06-29T12:00:00+0530
+Adra	| 23.50000	| 86.70000	| 2015-06-29T12:00:00+0530
+Agar	| 23.06667	| 76.03333	| 2015-06-29T12:00:00+0530
+Agartala	| 23.08333	| 91.38333	| 2015-06-29T12:00:00+0530
+
+Can you think of putting the vectorized behavior of `vecGetWeather` to use?
+
+## Output
+Read the table into R. Work off the model shown.
+```{r}
+out <- vecGetWeather(lat=c(26.40000, 30.16667, 24.68333), 
+                      long=c(90.63333, 74.16667, 72.83333), 
+                      timeStamp="2015-06-29T12:00:00+0530")
+```
+Examine the input. It supplies three pairs of lat-long coordinates in separate lists. The lone time-stamp is the odd man out. It is recycled thrice. 
+Examine the output. It is a list of three items. Each of these three items is the result of an API query with latitude, longitude and time-stamp. 
+
+Note that:
+- The vectorized version of a function accepts lists and returns a list.
+- Where input lists are of unequal size, elements are recycled.
+- R expects vectorization as the default behavior from functions.
+
+# Conclusion
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
