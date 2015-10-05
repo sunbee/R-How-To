@@ -28,10 +28,14 @@ setdiff(favoriteActors, oscarWinners)
 ```
 Compare using the `%in%` operator.
 ```{r echo=TRUE}
-setdiff(favoriteActors, oscarWinners)
+favoriteActors %in% oscarWinners
 ```
 ## Output
-So only Marlon Brando makes the cut.
+So only Marlon Brando makes the cut. Also see:
+```{r echo=TRUE}
+"Marlon Brando" %in% oscarWinners
+```
+No surprises there!
 
 # Conclusion
 Set operations for lists are quick and painless. Don't bother with loops. Instead, use any of the functions for set operations. 
