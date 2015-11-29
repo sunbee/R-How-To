@@ -1,0 +1,148 @@
+---
+title: "How to pivot a table"
+author: "[Sanjay Bhatikar](https://in.linkedin.com/in/sanjaybhatikar)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Problem Statement
+Pivots are at least half the reason why Excel is so popular. Pivots use the structure in data to reveal patterns of interest. A pivot summarizes data indexed by A with categories in B for values in C. The index A provides unique identifer for each record. The categories in B supply the basis for aggregation. The quantities in C are aggregated.
+
+What's the best way to pivot data in R?
+# Solution Sketch
+Use `dcast.data.table` from `library(data.table)`. This is fast and reliable.  
+
+## Data Preparation
+Ithal is a molecular biologist. He works with bits of circular DNA that ferry Genes of Interest (GoI) between organisms, typically from a bacterium to a plant. A GoI is part of a cassette which has all the other elements required to make it work. These  elements include promoters which are molecular switches and terminators that serve as "book-ends".
+
+Genes are recipes for proteins manufactured by the molecular machinery of the cell. Proteins are the Lego bricks of which cells are made. Cells make tissue which then make, well, you and I. Genes are data in that sense. 
+
+if genes are data, other elements of a cassette are meta-data. They are the full-stops and punctuation marks. The (white) space between words. The prologue and the epilogue. 
+
+Ithal is interested in the details about different elements in a cassette. He is interested in the description of 7 elements in particular: Enhancer, Promoter, Leader, Intron, Targeting Sequence, Coding Region, Transcription termination sequence. His data look as shown in the table.
+
+No | Construct | ElementFunction | ElementDescription
+---|-----------|-----------------|-------------------
+1 | pMON269350 | Border | B-AGRtu.right border-1:1:12
+2 | pMON269350 | Transcription termination sequence | T-Ec.aadA-SPC/STR-1:1:1
+3 | pMON269350 | Coding Region | CR-Ec.aadA-SPC/STR-1:1:3
+4 | pMON269350 | Promoter | P-Ec.aadA-SPC/STR:1
+5 | pMON269350 | Origin | OR-Ec.ori-ColE1-1:1:1
+6 | pMON269350 | Coding Region | CR-Ec.rop-1:1:3
+7 | pMON269350 | Origin | OR-Ec.oriV-RK2-1:1:6
+8 | pMON269350 | Border | B-AGRtu.left border:5
+9 | pMON269350 | Cassette | CAS-Os.TubA3//CTP2-CP4.nat//TubA3:1:3
+10 | pMON269350 | Expression Elements | EXP-Os.TubA-3:1:1
+11 | pMON269350 | Promoter | P-Os.TubA-3:4:6
+12 | pMON269350 | Leader | L-Os.TubA-3:1:1
+13 | pMON269350 | Intron | I-Os.TubA:2
+14 | pMON269350 | Gene of Interest | GOI-At.ShkG-CTP2+AGRtu.aroA-CP4.nat:1
+15 | pMON269350 | Targeting Sequence | TS-At.ShkG-CTP2:1
+16 | pMON269350 | Coding Region | CR-AGRtu.aroA-CP4.nat-1:1:2
+17 | pMON269350 | Transcription termination sequence | T-Os.TubA-3:1:1
+18 | pMON269350 | Cassette | CAS-CaMV.35S-enh+Ta.Lhcb1+Os.Act1//Bt.TIC2463_4//Ta.Hsp17:1
+19 | pMON269350 | Expression Elements | EXP-CaMV.35S-enh+Ta.Lhcb1+Os.Act1:1:1
+20 | pMON269350 | Promoter | P-CaMV.35S-enh:13
+21 | pMON269350 | Leader | L-CaMV.35S:2
+22 | pMON269350 | Leader | L-Ta.Lhcb1:1
+23 | pMON269350 | Intron | I-Os.Act1-1:1:19
+24 | pMON269350 | Coding Region | CR-Bt.TIC2463_4.nno_Mc:1
+25 | pMON269350 | Transcription termination sequence | T-Ta.Hsp17-1:1:1
+26 | pMON269371 | Border | B-AGRtu.right border-1:1:12
+27 | pMON269371 | Transcription termination sequence | T-Ec.aadA-SPC/STR-1:1:1
+28 | pMON269371 | Coding Region | CR-Ec.aadA-SPC/STR-1:1:3
+29 | pMON269371 | Promoter | P-Ec.aadA-SPC/STR:1
+30 | pMON269371 | Origin | OR-Ec.ori-ColE1-1:1:1
+31 | pMON269371 | Coding Region | CR-Ec.rop-1:1:3
+32 | pMON269371 | Origin | OR-Ec.oriV-RK2-1:1:6
+33 | pMON269371 | Border | B-AGRtu.left border:5
+34 | pMON269371 | Cassette | CAS-Os.TubA3//CTP2-CP4.nat//TubA3:1:3
+35 | pMON269371 | Expression Elements | EXP-Os.TubA-3:1:1
+36 | pMON269371 | Promoter | P-Os.TubA-3:4:6
+37 | pMON269371 | Leader | L-Os.TubA-3:1:1
+38 | pMON269371 | Intron | I-Os.TubA:2
+39 | pMON269371 | Gene of Interest | GOI-At.ShkG-CTP2+AGRtu.aroA-CP4.nat:1
+40 | pMON269371 | Targeting Sequence | TS-At.ShkG-CTP2:1
+41 | pMON269371 | Coding Region | CR-AGRtu.aroA-CP4.nat-1:1:2
+42 | pMON269371 | Transcription termination sequence | T-Os.TubA-3:1:1
+43 | pMON269371 | Cassette | CAS-CaMV.35S-enh+Ta.Lhcb1+Os.Act1//Bt.TIC2463_8.nno_Mc//Ta.Hsp17:1
+44 | pMON269371 | Expression Elements | EXP-CaMV.35S-enh+Ta.Lhcb1+Os.Act1:1:1
+45 | pMON269371 | Promoter | P-CaMV.35S-enh:13
+46 | pMON269371 | Leader | L-CaMV.35S:2
+47 | pMON269371 | Leader | L-Ta.Lhcb1:1
+48 | pMON269371 | Intron | I-Os.Act1-1:1:19
+49 | pMON269371 | Coding Region | CR-Bt.TIC2463_8.nno_Mc:1
+50 | pMON269371 | Transcription termination sequence | T-Ta.Hsp17-1:1:1
+
+How can you help Ithal with a pivot?
+
+## Execution
+Save the table to a file and load into R as data.table named `DTset`.
+
+The trick to a pivot is to identify A, B and C. Here, Ithal wants to index data on **Construct**. The categories in **ElementFunction** provide the basis for aggregation. All he really wants to aggregate is the **ElementDescription**.
+
+Let's see how this works using `dcast.data.table`. 
+```{r eval=FALSE}
+library(data.table)
+DT <- dcast.data.table(DTset, Construct ~ ElementFunction, 
+             value.var="ElementDescription") 
+```
+**Table I:**
+
+No | Construct | Border | Cassette | Coding Region | ..
+---|-----------|--------|----------|---------------|----
+1 | pMON269350 | 2 | 2 | 4 | ..
+2 | pMON269371 | 2 | 2 | 4 | ..
+
+We have specified A, B and C. We have not specified the aggregating principle. What is the aggregating mechanism used? 
+The default aggregation mechanism (i.e. length) is not terribly meaningful. It simply yields a count of the number of occurences. Let's specify the aggregating function. 
+```{r eval=FALSE}
+DT <- dcast.data.table(DTset, Construct ~ ElementFunction, 
+             value.var="ElementDescription",
+             fun = function(x) {x[1]}) 
+```             
+**Table 2:**
+
+No | Construct | Border | Cassette | Coding Region | ..
+---|-----------|--------|----------|---------------|---
+1 | pMON269350 | B-AGRtu.right border-1:1:12 | CAS-Os.TubA3//CTP2-CP4.nat//TubA3:1:3 | CR-Ec.aadA-SPC/STR-1:1:3 | ..
+2 | pMON269371 | B-AGRtu.right border-1:1:12 | CAS-Os.TubA3//CTP2-CP4.nat//TubA3:1:3 | CR-Ec.aadA-SPC/STR-1:1:3 | ..
+
+Note that some categories have multiple entries and the function picks the first upon aggregating into vector `x`. What if Ithal wants to keep all entries?
+
+We can modify the function to paste bits of text together, separated by a `&&`. So Ithal doesn't miss out on information he needs to see.  
+```{r eval=FALSE}
+DT <- dcast.data.table(DTset, Construct ~ ElementFunction, 
+             value.var="ElementDescription",
+             fun = function(x) {paste(x, collapse=" && ")}) 
+```
+**Table 3:**
+
+No | Construct | Border | ..
+---|-----------|--------|---
+1 | pMON269350 | B-AGRtu.right border-1:1:12 && B-AGRtu.left border:5 | ..
+2 | pMON269371 | B-AGRtu.right border-1:1:12 && B-AGRtu.left border:5 | ..
+
+We have take data in 'long' format and convered to 'wide' format by a pivot operation. Ithal needs only seven (7) columns (plus one for the construct identified). Our operation has generated fourteen (14) columns. How come?
+```{r eval=FALSE}
+DTset[, unique(ElementFunction)]
+```
+There are fourteen (14) unique categories. These include the one's Ithal wants. How to narrow down?
+```{r eval=FALSE}
+DT <- DT[, c("Construct", "Enhancer", "Promoter", "Leader", "Intron", 
+            "Targeting Sequence", "Coding Region",
+            "Transcription termination sequence"), with=FALSE]
+
+```
+**Table 4:**
+
+No | Construct | Enhancer | Promoter | ..
+---|-----------|----------|----------|---
+1 | pMON269350 |  | P-Ec.aadA-SPC/STR:1 && P-Os.TubA-3:4:6 && P-CaMV.35S-enh:13 | ..
+2 | pMON269371 |  | P-Ec.aadA-SPC/STR:1 && P-Os.TubA-3:4:6 && P-CaMV.35S-enh:13 | ..
+
+## Output
+The final output is a table with the elements of a cassette laid out in a row.
+
+# Conclusion
+Pivots are one of the most useful feature of spreadsheets. A pivot helps make data-cuts in ways that reveal patterns in data. Pivots in R involve a reshaping operation. With `data.table`, pivots in `R` enter the big data league.
