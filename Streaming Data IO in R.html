@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)https://jeroenooms.github.io/mongo-slides/#48 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Streaming Data IO in R</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">-->
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+  <!--This one seems to work all the time, but really small on ipad-->
+  <!--<meta name="viewport" content="initial-scale=0.4">-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" media="all" href="https://jeroenooms.github.io/mongo-slides/theme/css/default.css">
+  <link rel="stylesheet" media="all" href="https://jeroenooms.github.io/mongo-slides/theme/css/io2013.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="https://jeroenooms.github.io/mongo-slides/theme/css/phone.css">
+  <script type="text/javascript" async="" src="./Streaming Data IO in R_files/ga.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="slides" src="./Streaming Data IO in R_files/slides.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="order" src="./Streaming Data IO in R_files/order.js"></script><script type="text/javascript" charset="utf-8" data-requirecontext="_" data-requiremodule="../slide_config" src="./Streaming Data IO in R_files/slide_config.js"></script><script type="text/javascript" charset="utf-8" data-requirecontext="_" data-requiremodule="modernizr.custom.45394" src="./Streaming Data IO in R_files/modernizr.custom.45394.js"></script><script type="text/javascript" charset="utf-8" data-requirecontext="_" data-requiremodule="prettify/prettify" src="./Streaming Data IO in R_files/prettify.js"></script><script type="text/javascript" charset="utf-8" data-requirecontext="_" data-requiremodule="hammer" src="./Streaming Data IO in R_files/hammer.js"></script><script type="text/javascript" charset="utf-8" data-requirecontext="_" data-requiremodule="slide-controller" src="./Streaming Data IO in R_files/slide-controller.js"></script><script type="text/javascript" charset="utf-8" data-requirecontext="_" data-requiremodule="slide-deck" src="./Streaming Data IO in R_files/slide-deck.js"></script><!--<base target="_blank">--><base href="." target="_blank"> <!-- This amazingness opens all links in a new tab. -->
+  <script data-main="js/slides" src="./Streaming Data IO in R_files/require-1.0.8.min.js"></script>
+<link rel="icon" type="image/png" href="https://jeroenooms.github.io/mongo-slides/images/google_developers_logo_tiny.png"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open%20Sans:regular,semibold,italic,italicsemibold|Source%20Code%20Pro&v2"></head>
+<body style="opacity: 0" class="loaded">
+
+<slides class="layout-widescreen">
+
+  <slide class="logoslide nobackground" data-slide-num="1" data-total-slides="49">
+    <article class="flexbox vcenter">
+      <span><img style="height: 180px; width: 800px" src="./Streaming Data IO in R_files/recontrer.jpg"></span>
+    </article>
+  </slide>
+
+  <slide class="logoslide nobackground" data-slide-num="2" data-total-slides="49">
+    <article class="flexbox vcenter">
+      <span><img style="height:300px" src="./Streaming Data IO in R_files/useR2015.png"></span>
+    </article>
+  </slide>
+
+  <slide class="" data-slide-num="3" data-total-slides="49">
+    <hgroup>
+      <h2>Abstract</h2>
+    </hgroup>
+    <article class="smaller flexbox vcenter">
+      <p style="margin-left: 100px; margin-right: 100px; line-height: 150%;">
+        The jsonlite package provides a powerful JSON parser and generator that has become one of standard methods for getting data in and out of R. We discuss some recent additions to the package, in particular support streaming (large) data over http(s) connections. We then introduce the new mongolite package: a high-performance MongoDB client based on jsonlite. MongoDB (from "humongous") is a popular open-source document database for storing and manipulating very big JSON structures. It includes a JSON query language and an embedded V8 engine for in-database aggregation and map-reduce. We show how mongolite makes inserting and retrieving R data to/from a database as easy as converting it to/from JSON, without the bureaucracy that comes with traditional databases. Users that are already familiar with the JSON format might find MongoDB a great companion to the R language and will enjoy the benefits of using a single format for both serialization and persistency of data.
+      </p>
+    </article>
+  </slide>    
+
+  <slide class="title-slide segue nobackground" data-slide-num="4" data-total-slides="49">
+    <aside class="gdbar"><img src="./Streaming Data IO in R_files/Rlogo.png"></aside>
+    <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
+    <hgroup class="auto-fadein">
+      <h1 data-config-title="">Streaming Data IO in R</h1>
+      <h2 data-config-subtitle="">curl, jsonlite, mongolite</h2>
+      <p data-config-presenter="">Jeroen Ooms - UCLA<br></p>
+    </hgroup>
+  </slide>
+
+
+  <slide class="title-slide logoslide" data-slide-num="5" data-total-slides="49">
+    <article class="flexbox vcenter">
+      <h1 style="font-size: 48px;">http://bit.ly/mongo-slides</h1>
+    </article>
+  </slide>
+  
+
+  <slide class="segue dark nobackground" data-slide-num="6" data-total-slides="49">
+    <aside class="gdbar"><img src="./Streaming Data IO in R_files/mushroom.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Level 1</h2>
+      <h3>Building JSON pipelines in R</h3>
+    </hgroup>
+  </slide>
+
+  <slide class="fill nobackground" style="background-image: url(images/user2015/json_screenshot1.png)" data-slide-num="7" data-total-slides="49"> </slide> 
+  <slide class="fill nobackground" style="background-image: url(images/user2015/json_screenshot2.png)" data-slide-num="8" data-total-slides="49"> </slide>
+
+  <slide data-slide-num="9" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Why JSON</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Lightweight Data Interchange Format</li>
+        <li>Easy to parse and generate</li>
+        <li>Map to native types in most languages</li>        
+        <li>Standardized: <b>RFC7159</b> (previously <b>RFC4627</b>)</li>
+        <li>Unicode (UTF-8)</li>
+        <li>Supported in all browsers</li>
+      </ul>
+    </article>
+    <hgroup class="build">
+      <h2 class="">Implementations for R</h2>
+    </hgroup>
+    <article class="build">
+      <ul class="">
+        <li>Parsers: <b>rjson</b> (2007), <b>RJSONIO</b> (2010), <b>jsonlite</b> (2013)</li>
+        <li>MongoDB: <b>RMongo</b> (2011), <b>rmongodb</b> (2011), <b>mongolite</b> (2014)</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide data-slide-num="10" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Data Frames in JSON</h2>
+    </hgroup>
+    <article>
+    <p>jsonlite and mongolite are optimized for data frames</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">json </span><span class="pun">&lt;-</span><span class="pln"> toJSON</span><span class="pun">(</span><span class="pln">mtcars</span><span class="pun">)</span><span class="pln">
+all</span><span class="pun">.</span><span class="pln">equal</span><span class="pun">(</span><span class="pln">mtcars</span><span class="pun">,</span><span class="pln"> fromJSON</span><span class="pun">(</span><span class="pln">json</span><span class="pun">))</span><span class="pln">
+</span><span class="com"># TRUE</span></pre>
+
+<p>Very decent performance:</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">data</span><span class="pun">(</span><span class="pln">diamonds</span><span class="pun">,</span><span class="pln"> </span><span class="kwd">package</span><span class="pun">=</span><span class="pln"> </span><span class="str">"ggplot2"</span><span class="pun">)</span><span class="pln">
+system</span><span class="pun">.</span><span class="pln">time</span><span class="pun">(</span><span class="pln">json </span><span class="pun">&lt;-</span><span class="pln"> toJSON</span><span class="pun">(</span><span class="pln">diamonds</span><span class="pun">))</span><span class="pln">
+</span><span class="com">#   user  system elapsed </span><span class="pln">
+</span><span class="com">#  0.138   0.004   0.142</span><span class="pln">
+system</span><span class="pun">.</span><span class="pln">time</span><span class="pun">(</span><span class="kwd">out</span><span class="pln"> </span><span class="pun">&lt;-</span><span class="pln"> fromJSON</span><span class="pun">(</span><span class="pln">json</span><span class="pun">))</span><span class="pln">
+</span><span class="com">#   user  system elapsed </span><span class="pln">
+</span><span class="com">#  0.892   0.022   0.915</span></pre>
+    </article>
+  </slide> 
+
+  <slide data-slide-num="11" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Building pipelines</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">jsonlite</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">dplyr</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">magrittr</span><span class="pun">)</span><span class="pln">
+curl</span><span class="pun">(</span><span class="str">"https://api.github.com/repos/hadley/ggplot2/issues"</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  fromJSON</span><span class="pun">(</span><span class="pln">flatten </span><span class="pun">=</span><span class="pln"> TRUE</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  mutate</span><span class="pun">(</span><span class="pln">date </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">as</span><span class="pun">.</span><span class="typ">Date</span><span class="pun">(</span><span class="pln">created_at</span><span class="pun">))</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  filter</span><span class="pun">(</span><span class="pln">user</span><span class="pun">.</span><span class="pln">login </span><span class="pun">==</span><span class="pln"> </span><span class="str">"hadley"</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  </span><span class="kwd">select</span><span class="pun">(</span><span class="pln">title</span><span class="pun">,</span><span class="pln"> state</span><span class="pun">,</span><span class="pln"> date</span><span class="pun">)</span></pre>
+<pre data-lang="output">                                        title state       date
+1                  Review all uses of do.call  open 2015-06-19
+2       Standard unit of stroke in geom_point  open 2015-06-18
+3 Add hjust &amp; vjust params to position_jitter  open 2015-06-18
+4        Provide official extension mechanism  open 2015-06-18
+5          Add lims function to parallel labs  open 2015-06-18
+</pre>
+    </article>
+  </slide>  
+
+  <slide data-slide-num="12" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Aggregation Example</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">jsonlite</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">dplyr</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">magrittr</span><span class="pun">)</span><span class="pln">      
+curl</span><span class="pun">(</span><span class="str">"https://api.github.com/repos/wch/r-source/commits"</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  fromJSON</span><span class="pun">(</span><span class="pln">flatten </span><span class="pun">=</span><span class="pln"> TRUE</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  group_by</span><span class="pun">(</span><span class="pln">commit</span><span class="pun">.</span><span class="pln">author</span><span class="pun">.</span><span class="pln">name</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  summarise</span><span class="pun">(</span><span class="pln">count </span><span class="pun">=</span><span class="pln"> n</span><span class="pun">())</span></pre>
+
+<pre data-lang="output">  commit.author.name count
+1             hornik    14
+2               luke     2
+3           maechler     4
+4            murdoch     4
+6             ripley     6
+</pre>
+<p>But R is not always the end of the pipe...</p>
+    </article>
+  </slide>
+
+  <slide data-slide-num="13" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Round trip back to JSON</h2>
+    </hgroup>
+    <article class="">
+      <pre class="prettyprint" data-lang="r"><span class="pln">curl</span><span class="pun">(</span><span class="str">"https://api.github.com/repos/wch/r-source/commits"</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  fromJSON</span><span class="pun">(</span><span class="pln">flatten </span><span class="pun">=</span><span class="pln"> TRUE</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  group_by</span><span class="pun">(</span><span class="pln">commit</span><span class="pun">.</span><span class="pln">author</span><span class="pun">.</span><span class="pln">name</span><span class="pun">)</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  summarise</span><span class="pun">(</span><span class="pln">count </span><span class="pun">=</span><span class="pln"> n</span><span class="pun">())</span><span class="pln"> </span><span class="pun">%&gt;%</span><span class="pln">
+  </span><b><span class="pln">toJSON</span><span class="pun">(</span><span class="pln">pretty </span><span class="pun">=</span><span class="pln"> TRUE</span><span class="pun">)</span></b>
+</pre>
+<pre class="prettyprint" data-lang="json"><span class="pun">[</span><span class="pln">
+  </span><span class="pun">{</span><span class="pln">
+    </span><span class="str">"commit.author.name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"hornik"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"count"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">14</span><span class="pln">
+  </span><span class="pun">},</span><span class="pln">
+  </span><span class="pun">{</span><span class="pln">
+    </span><span class="str">"commit.author.name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"luke"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"count"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">2</span><span class="pln">
+  </span><span class="pun">},</span><span class="pln">
+  </span><span class="pun">...</span><span class="pln">
+</span><span class="pun">]</span></pre>
+    </article>
+  </slide>  
+
+  <slide class="segue dark nobackground" data-slide-num="14" data-total-slides="49">
+    <aside class="gdbar"><img src="./Streaming Data IO in R_files/shells.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Level 2</h2>
+      <h3>Streaming</h3>
+    </hgroup>
+  </slide>  
+
+  <slide data-slide-num="15" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Scaling up</h2>
+    </hgroup>
+    <article>
+    <p>JSON is not very suitable for storing large data:</p>
+<pre class="prettyprint" data-lang="r"><span class="com"># This doesn't work...</span><span class="pln">
+fromJSON</span><span class="pun">(</span><span class="str">"hugefile.json"</span><span class="pun">)</span><span class="pln">
+</span><b><span class="typ">Error</span><span class="pun">:</span><span class="pln"> cannot allocate vector of size </span><span class="lit">8.1</span><span class="pln"> </span><span class="typ">Gb</span></b>
+</pre>
+<div class="build">
+      <p class="">Bottlenecks:</p>
+      <ul class="">
+        <li>Copying huge strings in R is expensive</li>
+        <li>Need ton of memory to store entire parse tree</li>
+        <li>Cannot access data piecewise or incrementally</li>
+        <li>Takes forever</li>
+      </ul>
+      <p class="">Two solutions...</p>
+    </div></article>
+
+  </slide>
+
+
+    <slide data-slide-num="16" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Newline Delimited JSON (www.ndjson.org)</h2>
+    </hgroup>    
+    <article class="iframewrapper">
+      <iframe scrolling="no" src="about:blank"></iframe>
+    </article>
+  </slide>
+
+  <slide class="fill nobackground" style="background-image: url(images/user2015/diamonds.png)" data-slide-num="17" data-total-slides="49"> </slide>
+
+  <slide data-slide-num="18" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Streaming in R</h2>
+    </hgroup>
+    <article>
+      <p> <code class="red">stream_in</code> and <code class="red">stream_out</code> use readlines/writelines to stream data frames
+      as ndjson to a <b>connection</b> object (file, socket, url or pipe)</p>
+      <pre class="prettyprint" data-lang="r"><span class="com"># Stream to terminal</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">jsonlite</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">MASS</span><span class="pun">)</span><span class="pln">
+stream_out</span><span class="pun">(</span><span class="pln">cats</span><span class="pun">,</span><span class="pln"> stdout</span><span class="pun">())</span></pre>
+
+      <pre data-lang="output">{"Sex":"F","Bwt":2,"Hwt":7}
+{"Sex":"F","Bwt":2,"Hwt":7.4}
+{"Sex":"F","Bwt":2,"Hwt":9.5}
+{"Sex":"F","Bwt":2.1,"Hwt":7.2}
+{"Sex":"F","Bwt":2.1,"Hwt":7.3}
+{"Sex":"F","Bwt":2.1,"Hwt":7.6}
+{"Sex":"F","Bwt":2.1,"Hwt":8.1}
+{"Sex":"F","Bwt":2.1,"Hwt":8.2}
+</pre>
+    </article>
+  </slide>   
+
+  <slide data-slide-num="19" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Import/export json lines</h2>
+    </hgroup>
+    <article>
+      <p> Read and parse 1000 lines at a time (i.e. 54 iterations)</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">jsonlite</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">)</span><span class="pln">
+con </span><span class="pun">&lt;-</span><span class="pln"> curl</span><span class="pun">(</span><span class="str">"https://jeroenooms.github.io/data/diamonds.json"</span><span class="pun">)</span><span class="pln">
+mydata </span><span class="pun">&lt;-</span><span class="pln"> stream_in</span><span class="pun">(</span><span class="pln">con</span><span class="pun">,</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span></pre>
+      <p>Or with gzip compression:</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">con </span><span class="pun">&lt;-</span><span class="pln"> curl</span><span class="pun">(</span><span class="str">"https://jeroenooms.github.io/data/diamonds.json.gz"</span><span class="pun">)</span><span class="pln">
+mydata </span><span class="pun">&lt;-</span><span class="pln"> stream_in</span><span class="pun">(</span><span class="pln">gzcon</span><span class="pun">(</span><span class="pln">con</span><span class="pun">),</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span></pre>
+    </article>
+  </slide> 
+
+  <slide data-slide-num="20" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Import/export json lines</h2>
+    </hgroup>
+    <article>
+      <p>Stream flights data to disk</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">nycflights13</span><span class="pun">)</span><span class="pln">
+stream_out</span><span class="pun">(</span><span class="pln">flights</span><span class="pun">,</span><span class="pln"> file</span><span class="pun">(</span><span class="pln">tmp </span><span class="pun">&lt;-</span><span class="pln"> tempfile</span><span class="pun">()))</span></pre>
+      <p>Stream it back into R:</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">flights2 </span><span class="pun">&lt;-</span><span class="pln"> stream_in</span><span class="pun">(</span><span class="pln">file</span><span class="pun">(</span><span class="pln">tmp</span><span class="pun">))</span><span class="pln">
+all</span><span class="pun">.</span><span class="pln">equal</span><span class="pun">(</span><span class="pln">flights2</span><span class="pun">,</span><span class="pln"> </span><span class="kwd">as</span><span class="pun">.</span><span class="pln">data</span><span class="pun">.</span><span class="pln">frame</span><span class="pun">(</span><span class="pln">flights</span><span class="pun">))</span><span class="pln">
+unlink</span><span class="pun">(</span><span class="pln">tmp</span><span class="pun">)</span></pre>
+    </article>
+  </slide>
+
+
+  <slide data-slide-num="21" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Custom handler function</h2>
+    </hgroup>
+    <article>
+    <p>The behavior of <code>stream_in</code> can be customized by specifying a <code>handler</code> function:</p>
+<pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">)</span><span class="pln">
+con </span><span class="pun">&lt;-</span><span class="pln"> gzcon</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">(</span><span class="str">"http://jeroenooms.github.io/data/diamonds.json"</span><span class="pun">))</span><span class="pln">
+stream_in</span><span class="pun">(</span><span class="pln">con</span><span class="pun">,</span><span class="pln"> handler </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">function</span><span class="pun">(</span><span class="pln">df</span><span class="pun">){</span><span class="pln">
+  </span><span class="com"># Processes a page of data</span><span class="pln">
+  cat</span><span class="pun">(</span><span class="str">"Got data frame with"</span><span class="pun">,</span><span class="pln"> nrow</span><span class="pun">(</span><span class="pln">df</span><span class="pun">),</span><span class="pln"> </span><span class="str">"rows\n"</span><span class="pun">)</span><span class="pln">
+</span><span class="pun">},</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">,</span><span class="pln"> verbose </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">)</span></pre>
+    <p>The default <code>handler</code> collects all pages and rbinds them at the end (i.e. import).</p>
+    </article>
+  </slide>
+
+  <slide data-slide-num="22" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Stream process large data</h2>
+    </hgroup>
+    <article>
+      <p>Combine <code>stream_in</code> and <code>stream_out</code> to incrementally process (large) data stream in batches with little memory.</p>
+      <pre class="prettyprint" data-lang="r"><span class="com"># Calculate delay for flights over 1000 miles</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">dplyr</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">)</span><span class="pln">
+con </span><span class="pun">&lt;-</span><span class="pln"> gzcon</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">(</span><span class="str">"http://jeroenooms.github.io/data/nycflights13.json.gz"</span><span class="pun">))</span><span class="pln">
+output </span><span class="pun">&lt;-</span><span class="pln"> file</span><span class="pun">(</span><span class="pln">tmp </span><span class="pun">&lt;-</span><span class="pln"> tempfile</span><span class="pun">(),</span><span class="pln"> open </span><span class="pun">=</span><span class="pln"> </span><span class="str">"wb"</span><span class="pun">)</span><span class="pln">
+</span><b><span class="pln">stream_in</span><span class="pun">(</span><span class="pln">con</span><span class="pun">,</span><span class="pln"> </span><span class="kwd">function</span><span class="pun">(</span><span class="pln">df</span><span class="pun">){</span></b><span class="pln">
+  df </span><span class="pun">&lt;-</span><span class="pln"> filter</span><span class="pun">(</span><span class="pln">df</span><span class="pun">,</span><span class="pln"> distance </span><span class="pun">&gt;</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span><span class="pln">
+  df </span><span class="pun">&lt;-</span><span class="pln"> mutate</span><span class="pun">(</span><span class="pln">df</span><span class="pun">,</span><span class="pln"> delta </span><span class="pun">=</span><span class="pln"> dep_delay </span><span class="pun">-</span><span class="pln"> arr_delay</span><span class="pun">)</span><span class="pln">
+  </span><b><span class="pln">stream_out</span><span class="pun">(</span><span class="pln">df</span><span class="pun">,</span><span class="pln"> output</span><span class="pun">,</span><span class="pln"> verbose </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">)</span></b><span class="pln">
+</span><b><span class="pun">})</span></b><span class="pln">
+close</span><span class="pun">(</span><span class="pln">output</span><span class="pun">)</span></pre>
+    </article>
+  </slide>
+
+  <slide class="segue dark nobackground" data-slide-num="23" data-total-slides="49">
+    <aside class="gdbar"><img src="./Streaming Data IO in R_files/flower.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Level 3</h2>
+      <h3>R and MongoDB</h3>
+    </hgroup>
+  </slide>  
+
+
+  <slide data-slide-num="24" data-total-slides="49" class="">
+    <hgroup>
+      <h2>What is MongoDB?</h2>
+    </hgroup>
+    <article>
+      <img style="float:right; width: 350px;" src="./Streaming Data IO in R_files/mongo.jpg" class="reflect" alt="Description" title="Description">
+      <ul>
+        <li>JSON 'document' database</li>
+        <li>Written in C / C++</li>
+        <li>Open Source (AGPL / Apache 2)</li>
+        <li>Active development</li>
+        <li>High quality drivers</li>
+        <li>Well documented</li>
+        <li>Most popular NoSQL DB (http://db-engines.com/en/ranking)</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide class="fill nobackground" style="background-image: url(images/user2015/diamonds.png)" data-slide-num="25" data-total-slides="49"> </slide>
+
+
+  <slide data-slide-num="26" data-total-slides="49" class="">
+    <hgroup>
+      <h2>How does it work?</h2>
+    </hgroup>
+    <article>
+      <p>Mongo stores a 'collection' of documents (json objects) with an API:</p>
+      <ul>
+        <li>CRUD</li>
+        <li>search</li>
+        <li>sort</li>
+        <li>index</li>
+        <li>authentication</li>
+        <li>encryption</li>
+        <li>aggregation</li>
+        <li>mapreduce</li>
+      </ul>
+    </article>    
+  </slide>
+
+  <slide data-slide-num="27" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Terminology</h2>
+      <h3>Mapping concepts</h3>
+    </hgroup>
+    <article>
+      <table>
+        <tbody><tr>
+          <th>Relational (SQL)</th><th>Document (Mongo)</th>
+        </tr>
+        <tr>
+          <td>Row / Record</td><td><b>Document</b> (c.f. python structure)</td>
+        </tr>        
+        <tr>
+          <td>Table</td><td><b>Collection</b> (or namespace)</td>
+        </tr>
+        <tr>
+          <td>Database</td><td><b>Database</b></td>
+        </tr>
+        <tr>
+          <td>Query</td><td><b>Query</b></td>
+        </tr>
+      </tbody></table>
+    </article>
+  </slide>
+
+  <slide data-slide-num="28" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Installing MongoDB</h2>
+    </hgroup>
+    <article>
+      <h3>On Mac:</h3>
+<pre data-lang="sh">brew install mongodb
+</pre>
+
+      <h3>On Debian / Ubuntu</h3>
+<pre data-lang="sh">sudo apt-get install mongodb-server
+</pre>  
+
+      <h3>Windows / Fedora / Redhat: </h3>
+       Download from <a href="https://www.mongodb.org/downloads">https://www.mongodb.org/downloads</a>
+    </article>
+  </slide>
+
+  <slide data-slide-num="29" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Running MongoDB</h2>
+    </hgroup>
+    <article>
+      <h3>Linux / Mac:</h3>
+<pre data-lang="sh">mkdir -p /data/db
+mongod --dbpath /data/db
+</pre>
+
+      <h3>Windows</h3>
+<pre data-lang="sh">md C:\data\db
+C:\mongodb\bin\mongod.exe --dbpath C:\data\db
+</pre>  
+
+    </article>
+  </slide>  
+
+  <slide data-slide-num="30" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Test the Server</h2>
+    </hgroup>
+    <article>
+      <p>Use CLI to connect to (local) server as guest</p>
+      <pre data-lang="sh">mongo
+</pre>
+    <p>Using the JavaScript Console:</p>
+      <pre class="prettyprint" data-lang="javascript"><span class="kwd">use</span><span class="pln"> test
+</span><span class="com">// switched to db test</span><span class="pln">
+db</span><span class="pun">.</span><span class="pln">snacks</span><span class="pun">.</span><span class="pln">insert</span><span class="pun">({</span><span class="str">"name"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"chocolate"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"count"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">3</span><span class="pun">})</span><span class="pln">
+</span><span class="com">// WriteResult({ "nInserted" : 1 })</span><span class="pln">
+db</span><span class="pun">.</span><span class="pln">snacks</span><span class="pun">.</span><span class="pln">count</span><span class="pun">()</span><span class="pln">
+</span><span class="com">// 1</span><span class="pln">
+db</span><span class="pun">.</span><span class="pln">snacks</span><span class="pun">.</span><span class="pln">find</span><span class="pun">()</span><span class="pln">
+</span><span class="com">// { "_id" : ObjectId("55852c68170f4e4b6546e0ed"), "name" : "chocolate", "count" : 3 }</span></pre>    
+    </article>
+
+  </slide> 
+
+  <slide data-slide-num="31" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Connect with R</h2>
+    </hgroup>
+    <article class="smaller">
+      <pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">mongolite</span><span class="pun">)</span><span class="pln">
+m </span><span class="pun">&lt;-</span><span class="pln"> mongo</span><span class="pun">(</span><span class="pln">collection </span><span class="pun">=</span><span class="pln"> </span><span class="str">"test"</span><span class="pun">,</span><span class="pln">  db </span><span class="pun">=</span><span class="pln"> </span><span class="str">"test"</span><span class="pun">,</span><span class="pln"> url </span><span class="pun">=</span><span class="pln"> </span><span class="str">"mongodb://localhost"</span><span class="pun">))</span></pre>
+<p>List methods</p>
+<pre class="prettyprint" data-lang="r"><span class="pun">&gt;</span><span class="pln"> </span><span class="kwd">print</span><span class="pun">(</span><span class="pln">m</span><span class="pun">)</span><span class="pln">
+</span><span class="typ">Mongo</span><span class="pln"> collection </span><span class="str">'test'</span><span class="pln"> 
+ $aggregate</span><span class="pun">(</span><span class="pln">pipeline </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">,</span><span class="pln"> handler </span><span class="pun">=</span><span class="pln"> NULL</span><span class="pun">,</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span><span class="pln"> 
+ $count</span><span class="pun">(</span><span class="pln">query </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">)</span><span class="pln"> 
+ $distinct</span><span class="pun">(</span><span class="pln">key</span><span class="pun">,</span><span class="pln"> query </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">)</span><span class="pln"> 
+ $drop</span><span class="pun">()</span><span class="pln"> 
+ $export</span><span class="pun">(</span><span class="pln">con </span><span class="pun">=</span><span class="pln"> stdout</span><span class="pun">(),</span><span class="pln"> bson </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">)</span><span class="pln"> 
+ $find</span><span class="pun">(</span><span class="pln">query </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">,</span><span class="pln"> fields </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{\"_id\":0}"</span><span class="pun">,</span><span class="pln"> sort </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">,</span><span class="pln"> 
+   skip </span><span class="pun">=</span><span class="pln"> </span><span class="lit">0</span><span class="pun">,</span><span class="pln"> limit </span><span class="pun">=</span><span class="pln"> </span><span class="lit">0</span><span class="pun">,</span><span class="pln"> handler </span><span class="pun">=</span><span class="pln"> NULL</span><span class="pun">,</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span><span class="pln"> 
+ $import</span><span class="pun">(</span><span class="pln">con</span><span class="pun">,</span><span class="pln"> bson </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">)</span><span class="pln"> 
+ $index</span><span class="pun">(</span><span class="pln">add </span><span class="pun">=</span><span class="pln"> NULL</span><span class="pun">,</span><span class="pln"> remove </span><span class="pun">=</span><span class="pln"> NULL</span><span class="pun">)</span><span class="pln"> 
+ $info</span><span class="pun">()</span><span class="pln"> 
+ $insert</span><span class="pun">(</span><span class="pln">data</span><span class="pun">,</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span><span class="pln"> 
+ $mapreduce</span><span class="pun">(</span><span class="pln">map</span><span class="pun">,</span><span class="pln"> reduce</span><span class="pun">,</span><span class="pln"> query </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">,</span><span class="pln"> sort </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{}"</span><span class="pun">,</span><span class="pln"> limit </span><span class="pun">=</span><span class="pln"> </span><span class="lit">0</span><span class="pun">,</span><span class="pln"> </span><span class="kwd">out</span><span class="pln"> </span><span class="pun">=</span><span class="pln"> NULL</span><span class="pun">)</span><span class="pln"> 
+ $remove</span><span class="pun">(</span><span class="pln">query</span><span class="pun">,</span><span class="pln"> multiple </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">)</span><span class="pln"> 
+ $rename</span><span class="pun">(</span><span class="pln">name</span><span class="pun">,</span><span class="pln"> db </span><span class="pun">=</span><span class="pln"> NULL</span><span class="pun">)</span><span class="pln"> 
+ $update</span><span class="pun">(</span><span class="pln">query</span><span class="pun">,</span><span class="pln"> update </span><span class="pun">=</span><span class="pln"> </span><span class="str">"{\"$set\":{}}"</span><span class="pun">,</span><span class="pln"> upsert </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">,</span><span class="pln"> multiple </span><span class="pun">=</span><span class="pln"> FALSE</span><span class="pun">)</span><span class="pln"> 
+ </span></pre>
+
+    </article>
+  </slide>
+
+  <slide data-slide-num="32" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Connection management</h2>
+    </hgroup>
+    <article>
+      <p>Database connections are automatically cleaned up</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m </span><span class="pun">&lt;-</span><span class="pln"> mongo</span><span class="pun">(</span><span class="str">"test"</span><span class="pun">)</span><span class="pln">
+rm</span><span class="pun">(</span><span class="pln">m</span><span class="pun">)</span><span class="pln">
+gc</span><span class="pun">()</span></pre>
+<p>Automatic reconnecting</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m </span><span class="pun">&lt;-</span><span class="pln"> mongo</span><span class="pun">(</span><span class="str">"test"</span><span class="pun">)</span><span class="pln">
+m$info</span><span class="pun">()</span><span class="pln">$server$uptime</span></pre>
+
+    </article>
+  </slide>   
+
+  <slide data-slide-num="33" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Insert data</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="com"># Load packages</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">mongolite</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">nycflights13</span><span class="pun">)</span><span class="pln">
+
+</span><span class="com"># Insert some data</span><span class="pln">
+m </span><span class="pun">&lt;-</span><span class="pln"> mongo</span><span class="pun">(</span><span class="pln">collection </span><span class="pun">=</span><span class="pln"> </span><span class="str">"nycflights"</span><span class="pun">)</span><span class="pln">
+m$insert</span><span class="pun">(</span><span class="pln">flights</span><span class="pun">)</span><span class="pln">
+
+</span><span class="com"># Total number of records</span><span class="pln">
+m$count</span><span class="pun">()</span><span class="pln">
+
+</span><span class="com"># Matches for given query</span><span class="pln">
+m$count</span><span class="pun">(</span><span class="str">'{"month":1, "day":1}'</span><span class="pun">)</span></pre>
+
+    </article>
+  </slide>
+
+  <slide data-slide-num="34" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Retrieve Data</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="com"># Query data</span><span class="pln">
+jan1 </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="str">'{"month":1,"day":1}'</span><span class="pun">)</span><span class="pln">
+nrow</span><span class="pun">(</span><span class="pln">jan1</span><span class="pun">)</span><span class="pln"> </span><span class="com"># [1] 842</span><span class="pln">
+
+test </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="pln">limit </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">)</span><span class="pln">
+nrow</span><span class="pun">(</span><span class="pln">test</span><span class="pun">)</span><span class="pln"> </span><span class="com"># [1] 1000</span><span class="pln">
+
+</span><span class="com"># Select fields</span><span class="pln">
+test </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="pln">fields </span><span class="pun">=</span><span class="pln"> </span><span class="str">'{"tailnum" : true, "distance" : true}'</span><span class="pun">)</span><span class="pln">
+names</span><span class="pun">(</span><span class="pln">test</span><span class="pun">)</span><span class="pln">
+</span><span class="com">#[1] "_id"      "tailnum"  "distance"</span><span class="pln">
+
+</span><span class="com"># Select fields ommiting id </span><span class="pln">
+test </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="pln">fields </span><span class="pun">=</span><span class="pln"> </span><span class="str">'{"tailnum" : true, "distance" : true, "_id": false}'</span><span class="pun">)</span><span class="pln">
+names</span><span class="pun">(</span><span class="pln">test</span><span class="pun">)</span><span class="pln">
+</span><span class="com">#[1] "tailnum"  "distance"</span><span class="pln">
+</span></pre>
+    </article>
+  </slide>
+
+  <slide data-slide-num="35" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Sorting</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">jan1 </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="str">'{"month":1,"day":1}'</span><span class="pun">,</span><span class="pln"> sort</span><span class="pun">=</span><span class="str">'{"distance":-1}'</span><span class="pun">)</span><span class="pln">
+head</span><span class="pun">(</span><span class="pln">jan1</span><span class="pun">)</span><span class="pln">      </span></pre>
+<p>Sort larger data </p>
+      <pre class="prettyprint" data-lang="r"><span class="kwd">out</span><span class="pln">  </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="str">'{}'</span><span class="pun">,</span><span class="pln"> sort</span><span class="pun">=</span><span class="str">'{"distance":-1}'</span><span class="pun">)</span><span class="pln">
+</span><span class="com"># Executor error: Overflow sort stage buffered data usage ...</span></pre>
+<p>Need and index to sort large collection</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$index</span><span class="pun">(</span><span class="pln">add </span><span class="pun">=</span><span class="pln"> </span><span class="str">"distance"</span><span class="pun">)</span><span class="pln">
+</span><span class="kwd">out</span><span class="pln">  </span><span class="pun">&lt;-</span><span class="pln"> m$find</span><span class="pun">(</span><span class="str">'{}'</span><span class="pun">,</span><span class="pln"> sort</span><span class="pun">=</span><span class="str">'{"distance":-1}'</span><span class="pun">)</span></pre>
+    </article>
+  </slide>
+
+
+  <slide data-slide-num="36" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Indexing</h2>
+    </hgroup>
+    <article>
+
+<p>List current indices (<code>_id</code> is default)</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$index</span><span class="pun">()</span><span class="pln">
+</span><span class="com">#   v key._id key.distance       name           ns</span><span class="pln">
+</span><span class="com"># 1 1       1           NA       _id_ test.flights</span><span class="pln">
+</span><span class="com"># 2 1      NA            1 distance_1 test.flights</span></pre>
+
+<p>Cross field index (for multi sort)</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$index</span><span class="pun">(</span><span class="pln">add </span><span class="pun">=</span><span class="pln"> </span><span class="str">'{"year": true, "month":true, "day":true}'</span><span class="pun">)</span><span class="pln">
+</span><span class="com">#   v key._id key.distance key.year key.month key.day                 name           ns</span><span class="pln">
+</span><span class="com"># 1 1       1           NA       NA        NA      NA                 _id_ test.flights</span><span class="pln">
+</span><span class="com"># 2 1      NA            1       NA        NA      NA           distance_1 test.flights</span><span class="pln">
+</span><span class="com"># 3 1      NA           NA     TRUE      TRUE    TRUE year_0_month_0_day_0 test.flights</span></pre>
+
+
+    </article>
+  </slide>
+
+  <slide data-slide-num="37" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Indexing Benchmarks</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">system</span><span class="pun">.</span><span class="pln">time</span><span class="pun">(</span><span class="pln">m$count</span><span class="pun">(</span><span class="str">'{"day":31, "month":12}'</span><span class="pun">))</span><span class="pln">
+</span><span class="com">#   user  system elapsed </span><span class="pln">
+</span><span class="com"># 0.000   0.000   0.125</span><span class="pln">
+
+m$index</span><span class="pun">(</span><span class="pln">add</span><span class="pun">=</span><span class="str">"month"</span><span class="pun">)</span><span class="pln">
+system</span><span class="pun">.</span><span class="pln">time</span><span class="pun">(</span><span class="pln">m$count</span><span class="pun">(</span><span class="str">'{"day":31, "month":12}'</span><span class="pun">))</span><span class="pln">
+</span><span class="com">#   user  system elapsed </span><span class="pln">
+</span><span class="com"># 0.000   0.000   0.028</span><span class="pln">
+
+m$index</span><span class="pun">(</span><span class="pln">add</span><span class="pun">=</span><span class="str">"day"</span><span class="pun">)</span><span class="pln">
+system</span><span class="pun">.</span><span class="pln">time</span><span class="pun">(</span><span class="pln">m$count</span><span class="pun">(</span><span class="str">'{"day":31, "month":12}'</span><span class="pun">))</span><span class="pln">
+</span><span class="com">#   user  system elapsed </span><span class="pln">
+</span><span class="com"># 0.000   0.000   0.006</span><span class="pln">
+
+m$index</span><span class="pun">(</span><span class="pln">add </span><span class="pun">=</span><span class="pln"> </span><span class="str">'{"day":true, "month":true}'</span><span class="pun">)</span><span class="pln">
+system</span><span class="pun">.</span><span class="pln">time</span><span class="pun">(</span><span class="pln">m$count</span><span class="pun">(</span><span class="str">'{"day":31, "month":12}'</span><span class="pun">))</span><span class="pln">
+</span><span class="com">#   user  system elapsed</span><span class="pln">
+</span><span class="com"># 0.000   0.000   0.001</span></pre>
+
+    </article>
+  </slide>
+
+ <slide data-slide-num="38" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Find Distinct Values</h2>
+    </hgroup>
+    <article>
+      <p> List unique values for a field within a collection</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$distinct</span><span class="pun">(</span><span class="str">"carrier"</span><span class="pun">)</span><span class="pln">
+</span><span class="com"># [1] "UA" "AA" "B6" "DL" "EV" "MQ" "US" "WN" "VX" "FL" "AS" "9E" "F9" "HA" "YV" "OO"</span></pre>
+      <p> List unique values for a query</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$distinct</span><span class="pun">(</span><span class="str">"carrier"</span><span class="pun">,</span><span class="pln"> query </span><span class="pun">=</span><span class="pln"> </span><span class="str">'{"distance":{"$gt":3000}}'</span><span class="pun">)</span><span class="pln">
+</span><span class="com"># [1] "HA" "UA"</span></pre>
+    </article>
+  </slide>
+
+  <slide data-slide-num="39" data-total-slides="49" class="">
+    <hgroup>
+      <h2>In-database Aggregation</h2>
+    </hgroup>
+    <article>
+    <p>MongoDB includes a nice <a href="http://docs.mongodb.org/manual/applications/aggregation/">aggregation framework</a>.</p>
+<pre class="prettyprint" data-lang="r"><span class="pln">m$aggregate</span><span class="pun">(</span><span class="str">'[{"$group":{
+  "_id":"$carrier", 
+  "count": {"$sum":1}, 
+  "average":{"$avg":"$distance"}
+}}]'</span><span class="pun">)</span></pre>
+
+<pre class="smaller" data-lang="output">   _id count   average
+1   OO    32  500.8125
+2   9E 18460  530.2358
+3   FL  3260  664.8294
+4   AS   714 2402.0000
+5   WN 12275  996.2691
+6   B6 54635 1068.6215
+7   US 20536  553.4563
+...
+</pre>
+
+
+    </article>
+  </slide>    
+
+
+  <slide data-slide-num="40" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Stream MongoDB Results</h2>
+    </hgroup>
+    <article>
+    <p>Identical to <code>stream_in</code> in <code>jsonlite</code>. Specify a <code>handler</code> function to incrementally process (large) data:</p>
+<pre class="prettyprint" data-lang="r"><span class="pln">m$find</span><span class="pun">(</span><span class="pln">query </span><span class="pun">=</span><span class="pln"> </span><span class="str">'{}'</span><span class="pun">,</span><span class="pln"> pagesize </span><span class="pun">=</span><span class="pln"> </span><span class="lit">1000</span><span class="pun">,</span><span class="pln"> handler </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">function</span><span class="pun">(</span><span class="pln">df</span><span class="pun">){</span><span class="pln">
+  </span><span class="com"># Processes a page of data</span><span class="pln">
+  cat</span><span class="pun">(</span><span class="str">"Got data frame with"</span><span class="pun">,</span><span class="pln"> nrow</span><span class="pun">(</span><span class="pln">df</span><span class="pun">),</span><span class="pln"> </span><span class="str">"rows\n"</span><span class="pun">)</span><span class="pln">
+</span><span class="pun">})</span></pre>
+    <p>The default <code>handler</code> collects all pages and rbinds them at the end (i.e. import).</p>
+    </article>
+  </slide>  
+
+   <slide data-slide-num="41" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Import / Export</h2>
+    </hgroup>
+    <article>
+      <p> Stream ndjson into mongo</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">library</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">)</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">mongolite</span><span class="pun">)</span><span class="pln">
+m2 </span><span class="pun">&lt;-</span><span class="pln"> mongo</span><span class="pun">(</span><span class="str">"diamonds"</span><span class="pun">)</span><span class="pln">
+m2$import</span><span class="pun">(</span><span class="pln">curl</span><span class="pun">(</span><span class="str">"https://jeroenooms.github.io/data/diamonds.json"</span><span class="pun">))</span><span class="pln">
+m2$count</span><span class="pun">()</span><span class="pln">
+</span><span class="com"># [1] 53940</span></pre>
+      <p> Export to ndjson</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m2$export</span><span class="pun">(</span><span class="pln">file</span><span class="pun">(</span><span class="str">"~/diamonds.ndjson"</span><span class="pun">))</span><span class="pln">
+
+</span><span class="com"># Test that it worked</span><span class="pln">
+library</span><span class="pun">(</span><span class="pln">jsonlite</span><span class="pun">)</span><span class="pln">
+dmd </span><span class="pun">&lt;-</span><span class="pln"> stream_in</span><span class="pun">(</span><span class="pln">file</span><span class="pun">(</span><span class="str">"~/diamonds.ndjson"</span><span class="pun">))</span></pre>
+    </article>
+  </slide>      
+
+
+ <slide data-slide-num="42" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Remove Data</h2>
+    </hgroup>
+    <article>
+      <p> Delete all query matches</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$count</span><span class="pun">()</span><span class="pln"> </span><span class="com"># 336776</span><span class="pln">
+m$remove</span><span class="pun">(</span><span class="str">'{"carrier": "UA"}'</span><span class="pun">,</span><span class="pln"> multiple </span><span class="pun">=</span><span class="pln"> TRUE</span><span class="pun">)</span><span class="pln">
+m$count</span><span class="pun">()</span><span class="pln"> </span><span class="com"># 278111</span></pre>
+      <p> Delete by oid</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$remove</span><span class="pun">(</span><span class="str">'{"_id":{"$oid":"4d512b45cc9374271b02ec4f"}}'</span><span class="pun">)</span></pre>
+      <p> Drop entire collection (including indices, etc)</p>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m$drop</span><span class="pun">()</span></pre>
+    </article>
+  </slide>
+
+  <slide data-slide-num="43" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Conclusion</h2>
+    </hgroup>
+    <article>
+      <img style="float:right; width: 350px;" src="./Streaming Data IO in R_files/mongo.jpg" class="reflect" alt="Description" title="Description">
+      <p>What I like about Mongo</p>
+      <ul>
+        <li>Flexible and Informal (no schemas, definitions)</li>
+        <li>JSON queries: easy to construct dynamically</li>
+        <li>Light weight (No Java, Cloud, etc)</li>
+        <li>Scales both up and down</li>
+        <li>Interoperable! Data remains very accessible</li>
+        <li>In database aggregation, map-reduce</li>
+      </ul>
+    </article>
+  </slide>
+
+
+    <slide class="segue dark nobackground" data-slide-num="44" data-total-slides="49">
+    <aside class="gdbar"><img src="./Streaming Data IO in R_files/star.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Level 4</h2>
+      <h3>Map/Reduce</h3>
+    </hgroup>
+  </slide> 
+
+
+
+ <slide data-slide-num="45" data-total-slides="49" class="">
+    <hgroup>
+      <h2>Tabulate</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">table </span><span class="pun">&lt;-</span><span class="pln"> m$mapreduce</span><span class="pun">(</span><span class="pln">
+  map </span><span class="pun">=</span><span class="pln"> </span><span class="str">"function(){emit({origin: this.origin, dest:this.dest}, 1)}"</span><span class="pun">,</span><span class="pln">
+  reduce </span><span class="pun">=</span><span class="pln"> </span><span class="str">"function(id, counts){return Array.sum(counts)}"</span><span class="pln">
+</span><span class="pun">)</span><span class="pln">
+</span><span class="kwd">print</span><span class="pun">(</span><span class="pln">table</span><span class="pun">)</span></pre>
+
+      <pre data-lang="output">    _id.origin _id.dest value
+1          EWR      ALB   439
+2          EWR      ANC     8
+3          EWR      ATL  5022
+4          EWR      AUS   968
+5          EWR      AVL   265
+6          EWR      BDL   443
+7          EWR      BNA  2336
+8          EWR      BOS  5327
+...
+</pre>
+    </article>
+  </slide>    
+
+ <slide data-slide-num="46" data-total-slides="49" class="far-past">
+    <hgroup>
+      <h2>Binning (histogram)</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">hist </span><span class="pun">&lt;-</span><span class="pln"> m$mapreduce</span><span class="pun">(</span><span class="pln">
+  map </span><span class="pun">=</span><span class="pln"> </span><span class="str">"function(){emit(Math.floor(this.distance/100)*100, 1)}"</span><span class="pun">,</span><span class="pln">
+  reduce </span><span class="pun">=</span><span class="pln"> </span><span class="str">"function(id, counts){return Array.sum(counts)}"</span><span class="pln">
+</span><span class="pun">)</span><span class="pln">
+</span><span class="kwd">print</span><span class="pun">(</span><span class="pln">hist</span><span class="pun">)</span></pre>
+
+      <pre data-lang="output">   _id value
+1     0  1633
+2   100 16017
+3   200 33637
+4   300  7748
+5   400 21182
+6   500 26925
+7   600  7846
+8   700 48904
+...
+</pre>
+    </article>
+  </slide>
+
+   <slide data-slide-num="47" data-total-slides="49" class="past">
+    <hgroup>
+      <h2>K-means (part 1)</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="pln">m </span><span class="pun">&lt;-</span><span class="pln"> mongo</span><span class="pun">(</span><span class="str">"diamonds"</span><span class="pun">)</span><span class="pln">
+data</span><span class="pun">(</span><span class="pln">diamonds</span><span class="pun">,</span><span class="pln"> </span><span class="kwd">package</span><span class="pln"> </span><span class="pun">=</span><span class="pln"> </span><span class="str">"ggplot2"</span><span class="pun">)</span><span class="pln">
+m$insert</span><span class="pun">(</span><span class="pln">diamonds</span><span class="pun">)</span><span class="pln">
+ 
+mapper </span><span class="pun">&lt;-</span><span class="pln"> </span><span class="str">'function(){
+  var x = this.x;
+  var dist = means.map(function(mk){return Math.pow(mk-x, 2)});
+  var min = Math.min.apply(Math, dist);
+  emit(dist.indexOf(min), {count:1, sum:x});
+}'</span><span class="pln">
+ 
+reducer </span><span class="pun">&lt;-</span><span class="pln"> </span><span class="str">'function(id, val){
+  return {
+    count : Array.sum(val.map(function(val){return val.count})),
+    sum : Array.sum(val.map(function(val){return val.sum}))
+  };
+}'</span></pre>
+    </article>
+  </slide>   
+
+   <slide data-slide-num="48" data-total-slides="49" class="current">
+    <hgroup>
+      <h2>K-means (part 2)</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="r"><span class="com"># Starting values</span><span class="pln">
+means </span><span class="pun">&lt;-</span><span class="pln"> c</span><span class="pun">(</span><span class="lit">4</span><span class="pun">,</span><span class="lit">5</span><span class="pun">,</span><span class="lit">6</span><span class="pun">)</span><span class="pln">
+ 
+</span><span class="com"># EM</span><span class="pln">
+repeat </span><span class="pun">{</span><span class="pln">
+  </span><span class="kwd">print</span><span class="pun">(</span><span class="pln">means</span><span class="pun">)</span><span class="pln">
+  result </span><span class="pun">&lt;-</span><span class="pln">m$mapreduce</span><span class="pun">(</span><span class="pln">mapper</span><span class="pun">,</span><span class="pln"> reducer</span><span class="pun">,</span><span class="pln"> scope</span><span class="pun">=</span><span class="pln">list</span><span class="pun">(</span><span class="pln">means</span><span class="pun">=</span><span class="pln">means</span><span class="pun">))</span><span class="pln">
+  newmeans </span><span class="pun">&lt;-</span><span class="pln"> sort</span><span class="pun">(</span><span class="pln">result$value$sum</span><span class="pun">/</span><span class="pln">result$value$count</span><span class="pun">)</span><span class="pln">
+  </span><span class="kwd">if</span><span class="pun">(</span><span class="pln">identical</span><span class="pun">(</span><span class="pln">means</span><span class="pun">,</span><span class="pln"> newmeans</span><span class="pun">))</span><span class="pln">
+    </span><span class="kwd">break</span><span class="pln">
+  means </span><span class="pun">&lt;-</span><span class="pln"> newmeans
+</span><span class="pun">}</span><span class="pln">
+ 
+</span><span class="com"># Compare to R solution:</span><span class="pln">
+sort</span><span class="pun">(</span><span class="pln">kmeans</span><span class="pun">(</span><span class="pln">diamonds$x</span><span class="pun">,</span><span class="pln"> </span><span class="lit">3</span><span class="pun">)</span><span class="pln">$centers</span><span class="pun">)</span></pre>
+    </article>
+  </slide>   
+
+
+  <slide class="fill nobackground next" style="background-image: url(images/user2015/castle.png)" data-slide-num="49" data-total-slides="49">
+    <article class="flexbox vcenter">
+      <hgroup>
+        <h2 class="white vcenter">Congratulations!</h2>
+      </hgroup>
+    </article>
+  </slide> 
+
+<!--
+  <slide class="logoslide dark nobackground">
+    <article class="flexbox vcenter">
+      <span><img src="images/google_developers_logo_white.png"></span>
+    </article>
+  </slide>
+-->
+  <slide class="backdrop"></slide>
+
+<div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></slides>
+
+<script>
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-XXXXXXXX-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+
+<!--[if IE]>
+  <script src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+  <script>CFInstall.check({mode: 'overlay'});</script>
+<![endif]-->
+
+
+</body></html>
