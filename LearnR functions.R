@@ -1,7 +1,13 @@
+setwd('C:/Users/ssbhat3/Desktop/R-How-To')
+getwd()
+source("Doppelganger.R")
+
 # Function components
 #   The body: body()
 #   The arguments: formals()
 #   The environment: environmen  t()
+
+library(testthat)
 
 #q What are the components of a function? How to obtain them?
 f <- function(x) x^2
@@ -12,7 +18,6 @@ body(f)
 formals(f)
 environment(f)
 #c A function has body, arguments and an environment in which it is defined.
-
 
 # Primitive functions
 
@@ -280,6 +285,7 @@ f <- function(a=7, b=9) {
 f()
 #a Returns a vector with elements 7 and 9
 #c The arguments defined in a function call assume default values
+checks_out('c(7,9)', c(7,9))
 
 # Default arguments
 # Lazy evaluation
@@ -292,6 +298,7 @@ h <- function(a=7, b=d) {
 h()
 #a Returns a vector with elements 7 and 53
 #c A default argument can be defined in the body of the function. Bad idea thougH! (Why?)
+checks_out('c(7, 53)', c(7, 53))
 
 # Default arguments
 # Missing arguments
@@ -303,8 +310,14 @@ i()
 i(a=7)
 i(b=9)
 i(7, 9)
-#a Returns (TRUE, TRUE), (FALSE, TRUE), (TRUE, FALSE) and (FALSE, FALSE) respectively.
+# Choose from:
+#1: (TRUE, TRUE), (FALSE, TRUE), (TRUE, FALSE) and (FALSE, FALSE) 
+#2: (FALSE, FALSE), (TRUE, FALSE), (FALSE, TRUE) and (TRUE, TRUE)
+#3: Throws an exception
+#4:
+#a 1
 #c Use `missing()` to detect whether the function call specified an argument 
+checks_out(1, 1)
 
 # Lazy evaluation
 # Closure
@@ -314,14 +327,19 @@ f <- function(x) {
   10
 }
 f(stop("This is an error!"))
-# And how to force evaluation of an argument?
+#a Evaluates to 10. To force evaluation
+#c Lazy evaluation means that no argument is assigned a value until asked for. 
+checks_out('10', 10)
+
+#q And how to force evaluation of an argument?
 f <- function(x) {
   # Insert here
 }
-#a Evaluates to 10. To force evaluation
+#a
 x
 force(x)
-#c Use `force(x)` or simply `x` to force evaluation
+#c Use `force(x)` or simply `x` to force evaluation in the body of a function
+checks_out('force( x)', "force\\(x\\)|x", "expect_match")
 
 # Lazy evaluation
 # Closure
@@ -333,6 +351,14 @@ add <- function(x) {
 adders <- lapply(1:10, add)
 adders[[1]](13)
 adders[[10]](13)
+# Choose from
+#1:  first 14(=1+13), second 23(=10+13)
+#2:  first 23(=10+13), second 23(=10+13)
+#3:  Throws an exception
+#4:
+#a 1
+#c A function returned by a function is a closure. Data passed to a closure persists in its environment.
+checks_out('1', 1) 
 
 add <- function(x) {
   force(x)
@@ -351,17 +377,23 @@ f <- function(x=ls()) {
   x
 }
 f()
-#a Shows variables 'a' and 'x' in the function's execution environment.
-#c Default arguments are evaluated inside the function. 
-#c The evaluation of an expression happens in the current (function's) environment.
+# Choose from
+#1: Shows variables 'a' and 'x' in the function's execution environment.
+#2: Shows only the variables in the global environment at the time the function is called.
+#3: Shows all the variables in the global environment at the time the function is called and 'a'.
+#4:
+#a: 1
+#c Default arguments are evaluated inside the function and only when required. 
+#c The evaluation of an expression for assignment happens in the current (function's) environment.
+checks_out('1', 1)
 
 # Lazy evaluation
-# Laziness is a virtue
+# Laziness is a boon
 
 #q Test that 'x' is not null and greater than 0. Can you do it without lazy evaluation?
 x <- NULL
 if (!is.null(x) && x > 0) { 
-  # Do stull with x 
+  # Do stuff with x 
 }
 # Implement as follows
 `&&` <- function(x, y) {
@@ -373,7 +405,12 @@ if (!is.null(x) && x > 0) {
 a <- NULL
 !is.null(a) && a > 0  # First
 a > 0 and !is.null(a) # Second
-#a First eturns FALSE. Second throws an error.
+# Choose from:
+#1: First returns FALSE. second throws an error.
+#2: First returns FALSE, second returns FALSE.
+#3: Neither statement works, as we don't know what type 'a' is.
+#4: 
+#a 1
 #c Without lazy evaluation, both x and y would always be evaluated.
 
 #q How to use laziness to eliminate a conditional 'if' statement
@@ -382,6 +419,7 @@ if(is.null(a)) stop("a is null")
 !is.null(a) || stop("a is null")
 #c Lazy evaluation means the the RHS is never evaluated unless the LHS evaluates to FALSE
 #c This is a more conceptual example of laziness.
+checks_out('1', 1)
 
 # Arguments
 # The special argument '...'
